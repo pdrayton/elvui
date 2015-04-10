@@ -899,6 +899,20 @@ local function UpdateFilterGroup()
 					end,
 					set = function(info, value) E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].enable = value; UpdateFilterGroup(); UF:Update_AllFrames(); end
 				},
+				stackThreshold = {
+					name = L["Stack Threshold"],
+					type = "range",
+					get = function()
+						if selectedFolder or not selectedSpell then
+							return 0
+						else
+							return E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold
+						end
+					end,
+					set = function(info, value) E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold = value; UpdateFilterGroup(); UF:Update_AllFrames(); end,
+					min = 0, max = 99, step = 1,
+					desc = L["The aura needs to reach this amount of stacks before it is blocked or allowed, depending on the type of filter. Set to 0 to always block/allow the aura."],
+				},
 			},
 		}
 
@@ -916,20 +930,6 @@ local function UpdateFilterGroup()
 				set = function(info, value) E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].priority = value; UpdateFilterGroup(); UF:Update_AllFrames(); end,
 				min = 0, max = 99, step = 1,
 				desc = L["Set the priority order of the spell, please note that prioritys are only used for the raid debuff module, not the standard buff/debuff module. If you want to disable set to zero."],
-			}
-			E.Options.args.filters.args.spellGroup.args.stackThreshold = {
-				name = L["Stack Threshold"],
-				type = "range",
-				get = function()
-					if selectedFolder or not selectedSpell then
-						return 0
-					else
-						return E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold
-					end
-				end,
-				set = function(info, value) E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold = value; UpdateFilterGroup(); UF:Update_AllFrames(); end,
-				min = 0, max = 99, step = 1,
-				desc = L["The debuff needs to reach this amount of stacks before it is shown. Set to 0 to always show the debuff."],
 			}
 		end
 

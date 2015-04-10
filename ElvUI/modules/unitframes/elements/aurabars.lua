@@ -138,7 +138,10 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 	if UF:CheckFilter(db.useBlacklist, isFriend) then
 		local blackList = E.global['unitframe']['aurafilters']['Blacklist'].spells[name]
 		if blackList and blackList.enable then
-			returnValue = false;
+			local stackThreshold = blackList.stackThreshold or 0
+			if (count and count >= stackThreshold) or (not count) then
+				returnValue = false;
+			end
 		end
 
 		anotherFilterExists = true
@@ -147,7 +150,12 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 	if UF:CheckFilter(db.useWhitelist, isFriend) then
 		local whiteList = E.global['unitframe']['aurafilters']['Whitelist'].spells[name]
 		if whiteList and whiteList.enable then
-			returnValue = true;
+			local stackThreshold = whiteList.stackThreshold or 0
+			if (count and count >= stackThreshold) or (not count) then
+				returnValue = true;
+			else
+				returnValue = false;
+			end
 		elseif not anotherFilterExists and not playerOnlyFilter then
 			returnValue = false
 		end
@@ -159,7 +167,12 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 		local whiteList = E.global['unitframe']['aurafilters']['Whitelist (Strict)'].spells[name]
 		if whiteList and whiteList.enable then
 			if whiteList.spellID and whiteList.spellID == spellID then
-				returnValue = true;
+				local stackThreshold = whiteList.stackThreshold or 0
+				if (count and count >= stackThreshold) or (not count) then
+					returnValue = true;
+				else
+					returnValue = false;
+				end
 			else
 				returnValue = false
 			end
@@ -174,15 +187,21 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 
 		if type == 'Whitelist' then
 			if spellList[name] and spellList[name].enable and passPlayerOnlyCheck then
-				returnValue = true
+				local stackThreshold = spellList[name].stackThreshold or 0
+				if (count and count >= stackThreshold) or (not count) then
+					returnValue = true;
+				end
 				if db.useFilter == 'Whitelist (Strict)' and spellList[name].spellID and not spellList[name].spellID == spellID then
-						returnValue = false
-					end
+					returnValue = false
+				end
 			elseif not anotherFilterExists then
 				returnValue = false
 			end
 		elseif type == 'Blacklist' and spellList[name] and spellList[name].enable then
-			returnValue = false
+			local stackThreshold = spellList[name].stackThreshold or 0
+			if (count and count >= stackThreshold) or (not count) then
+				returnValue = false;
+			end
 		end
 	end
 

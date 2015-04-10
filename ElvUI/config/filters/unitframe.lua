@@ -15,7 +15,7 @@ local function Defaults(priorityOverride)
 end
 
 local function DefaultsID(spellID, priorityOverride)
-	return {['enable'] = true, ['spellID'] = spellID, ['priority'] = priorityOverride or 0}
+	return {['enable'] = true, ['spellID'] = spellID, ['priority'] = priorityOverride or 0, ['stackThreshold'] = 0}
 end
 G.unitframe.aurafilters = {};
 

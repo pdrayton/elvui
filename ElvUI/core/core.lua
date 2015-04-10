@@ -706,20 +706,24 @@ function E:DBConversions()
 		end
 	end
 	
-	if E.global.unitframe['aurafilters']['RaidDebuffs'].spells then
+	if E.global.unitframe['aurafilters'] then
 		local matchFound
-		for k, v in pairs(E.global.unitframe['aurafilters']['RaidDebuffs'].spells) do
-			if type(v) == 'table' then
-				matchFound = false
-				for k_,v_ in pairs(v) do
-					if k_ == 'stackThreshold' then
-						matchFound = true
+		for filter, valueTable in pairs(E.global.unitframe['aurafilters']) do
+			if type(valueTable) == "table" and valueTable.spells then
+				for k,v in pairs(valueTable.spells) do
+					if type(v) == 'table' then
+						matchFound = false
+						for k_,v_ in pairs(v) do
+							if k_ == 'stackThreshold' then
+								matchFound = true
+							end
+						end
+					end
+					
+					if not matchFound then
+						E.global.unitframe['aurafilters'][filter]['spells'][k].stackThreshold = 0
 					end
 				end
-			end
-			
-			if not matchFound then
-				E.global.unitframe['aurafilters']['RaidDebuffs']['spells'][k].stackThreshold = 0
 			end
 		end
 	end
