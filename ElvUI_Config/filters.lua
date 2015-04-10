@@ -909,6 +909,7 @@ local function UpdateFilterGroup()
 							return E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold
 						end
 					end,
+					disabled = function() return not E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].enable end,
 					set = function(info, value) E.global.unitframe['aurafilters'][selectedFilter]['spells'][selectedSpell].stackThreshold = value; UpdateFilterGroup(); UF:Update_AllFrames(); end,
 					min = 0, max = 99, step = 1,
 					desc = L["The aura needs to reach this amount of stacks before it is blocked or allowed, depending on the type of filter. Set to 0 to always block/allow the aura."],
