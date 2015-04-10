@@ -318,8 +318,6 @@ function UF:AuraFilter(unit, icon, name, rank, texture, count, dtype, duration, 
 			local stackThreshold = whiteList.stackThreshold or 0
 			if (count and count >= stackThreshold) or (not count) then
 				returnValue = true;
-			else
-				returnValue = false;
 			end
 			icon.priority = whiteList.priority
 		elseif not anotherFilterExists and not playerOnlyFilter then
@@ -336,8 +334,6 @@ function UF:AuraFilter(unit, icon, name, rank, texture, count, dtype, duration, 
 				local stackThreshold = whiteList.stackThreshold or 0
 				if (count and count >= stackThreshold) or (not count) then
 					returnValue = true;
-				else
-					returnValue = false;
 				end
 			else
 				returnValue = false;

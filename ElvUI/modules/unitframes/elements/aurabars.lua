@@ -153,8 +153,6 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 			local stackThreshold = whiteList.stackThreshold or 0
 			if (count and count >= stackThreshold) or (not count) then
 				returnValue = true;
-			else
-				returnValue = false;
 			end
 		elseif not anotherFilterExists and not playerOnlyFilter then
 			returnValue = false
@@ -170,8 +168,6 @@ function UF:AuraBarFilter(unit, name, rank, icon, count, debuffType, duration, e
 				local stackThreshold = whiteList.stackThreshold or 0
 				if (count and count >= stackThreshold) or (not count) then
 					returnValue = true;
-				else
-					returnValue = false;
 				end
 			else
 				returnValue = false
