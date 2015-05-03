@@ -525,6 +525,7 @@ function E:UpdateAll(ignoreInstall)
 	AB.db = self.db.actionbar
 	AB:UpdateButtonSettings()
 	AB:UpdateMicroPositionDimensions()
+	AB:Extra_SetAlpha()
 
 	local bags = E:GetModule('Bags');
 	bags.db = self.db.bags
@@ -532,6 +533,7 @@ function E:UpdateAll(ignoreInstall)
 	bags:Layout(true);
 	bags:PositionBagFrames()
 	bags:SizeAndPositionBagBar()
+	bags:UpdateItemLevelDisplay()
 
 	local totems = E:GetModule('Totems');
 	totems.db = self.db.general.totems

@@ -150,7 +150,7 @@ function A:UpdateTempEnchant(button, index)
 	local offset = 2
 	local weapon = button:GetName():sub(-1)
 	if weapon:match("2") then
-		offset = 5
+		offset = 6
 	end
 
 	if(quality) then
@@ -266,8 +266,6 @@ function A:CreateAuraHeader(filter)
 end
 
 function A:Initialize()
-	if self.db then return; end --IDK WHY BUT THIS IS GETTING CALLED TWICE FROM SOMEWHERE...
-
 	self:Construct_ConsolidatedBuffs()
 
 	if(E.private.auras.disableBlizzard) then
