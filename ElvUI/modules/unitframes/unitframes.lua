@@ -922,6 +922,10 @@ function UF:UpdateAllHeaders(event)
 		if header.Configure_Groups then
 			header:Configure_Groups()
 		end
+		if header == 'party' or header == 'raid' or header == 'raid40' then
+			--Update BuffIndicators on profile change as they might be using profile specific data
+			UF:UpdateAuraWatchFromHeader(header)
+		end
 	end
 
 	if E.private["unitframe"]["disabledBlizzardFrames"].party then
@@ -1348,7 +1352,15 @@ function UF:ToggleTransparentStatusBar(isTransparent, statusBar, backdropTex, ad
 		statusBar:SetStatusBarTexture(LSM:Fetch("statusbar", self.db.statusbar))
 		if adjustBackdropPoints then
 			backdropTex:ClearAllPoints()
-			backdropTex:SetAllPoints(statusBar)
+			if statusBarOrientation == 'VERTICAL' then
+				backdropTex:SetPoint("TOPLEFT", statusBar, "TOPLEFT")
+				backdropTex:SetPoint("BOTTOMLEFT", statusBarTex, "TOPLEFT")
+				backdropTex:SetPoint("BOTTOMRIGHT", statusBarTex, "TOPRIGHT")				
+			else			
+				backdropTex:SetPoint("TOPLEFT", statusBarTex, "TOPRIGHT")
+				backdropTex:SetPoint("BOTTOMLEFT", statusBarTex, "BOTTOMRIGHT")
+				backdropTex:SetPoint("BOTTOMRIGHT", statusBar, "BOTTOMRIGHT")
+			end
 		end
 
 		if invertBackdropTex then
