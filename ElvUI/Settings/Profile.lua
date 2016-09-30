@@ -188,6 +188,11 @@ P['bags'] = {
 		['showBackdrop'] = false,
 		['mouseover'] = false,
 	},
+	["defaultSorting"] = {
+		["bags"] = false,
+		["bank"] = false,
+		["topBagFirst"] = true,
+	},
 };
 
 --NamePlate

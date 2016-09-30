@@ -92,123 +92,45 @@ E.Options.args.bags = {
 					order = 7,
 					type = "toggle",
 					name = L["Disable Bag Sort"],
+					desc = L["Disables the clean up button so it no longer can be clicked."],
 					set = function(info, value) E.db.bags[info[#info]] = value; B:ToggleSortButtonState(false); end
 				},
 				disableBankSort = {
 					order = 8,
 					type = "toggle",
 					name = L["Disable Bank Sort"],
+					desc = L["Disables the clean up button so it no longer can be clicked."],
 					set = function(info, value) E.db.bags[info[#info]] = value; B:ToggleSortButtonState(true); end
 				},
-				countGroup = {
-					order = 8,
-					type = "group",
-					name = L["Item Count Font"],
-					guiInline = true,
-					args = {
-						countFont = {
-							order = 1,
-							type = "select",
-							dialogControl = 'LSM30_Font',
-							name = L["Font"],
-							values = AceGUIWidgetLSMlists.font,
-							set = function(info, value) E.db.bags.countFont = value; B:UpdateCountDisplay() end,
-						},
-						countFontColor = {
-							order = 2,
-							type = 'color',
-							name = L["Color"],
-							get = function(info)
-								local t = E.db.bags[ info[#info] ]
-								local d = P.bags[info[#info]]
-								return t.r, t.g, t.b, t.a, d.r, d.g, d.b
-							end,
-							set = function(info, r, g, b)
-								E.db.bags[ info[#info] ] = {}
-								local t = E.db.bags[ info[#info] ]
-								t.r, t.g, t.b = r, g, b
-								B:UpdateCountDisplay()
-							end,
-						},
-						countFontSize = {
-							order = 3,
-							type = "range",
-							name = L["Font Size"],
-							min = 4, max = 212, step = 1,
-							set = function(info, value) E.db.bags.countFontSize = value; B:UpdateCountDisplay() end,
-						},
-						countFontOutline = {
-							order = 4,
-							type = "select",
-							name = L["Font Outline"],
-							set = function(info, value) E.db.bags.countFontOutline = value; B:UpdateCountDisplay() end,
-							values = {
-								['NONE'] = L["None"],
-								['OUTLINE'] = 'OUTLINE',
-								['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
-								['THICKOUTLINE'] = 'THICKOUTLINE',
-							},
-						},
-					},
-				},
-				itemLevelGroup = {
+				defaultSortingGroup = {
 					order = 9,
 					type = "group",
-					name = L["Item Level"],
+					name = L["Use Blizzard Clean Up"],
 					guiInline = true,
+					get = function(info) return E.db.bags.defaultSorting[ info[#info] ] end,
+					set = function(info, value) E.db.bags.defaultSorting[ info[#info] ] = value end,
 					args = {
-						itemLevel = {
+						bags = {
 							order = 1,
-							type = 'toggle',
-							name = L["Display Item Level"],
-							desc = L["Displays item level on equippable items."],
-							set = function(info, value) E.db.bags.itemLevel = value; B:UpdateItemLevelDisplay() end,
+							type = "toggle",
+							name = L["Bags"],
+							desc = L["Use the clean up functionality from the default UI."],
 						},
-						useTooltipScanning = {
+						bank = {
 							order = 2,
-							type = 'toggle',
-							name = L["Use Tooltip Scanning"],
-							desc = L["This makes the item level display more reliable but uses more resources. If this is disabled then upgraded items will not show the correct item level."],
-							set = function(info, value) E.db.bags.useTooltipScanning = value; B:UpdateItemLevelDisplay() end,
+							type = "toggle",
+							name = L["Bank"],
+							desc = L["Use the clean up functionality from the default UI."],
 						},
-						itemLevelThreshold = {
+						topBagFirst = {
 							order = 3,
-							name = L["Item Level Threshold"],
-							desc = L["The minimum item level required for it to be shown."],
-							type = 'range',
-							min = 1, max = 1000, step = 1,
-							disabled = function() return not E.db.bags.itemLevel end,
-							set = function(info, value) E.db.bags.itemLevelThreshold = value; B:UpdateItemLevelDisplay() end,
-						},
-						itemLevelFont = {
-							order = 4,
-							type = "select",
-							dialogControl = 'LSM30_Font',
-							name = L["Font"],
-							values = AceGUIWidgetLSMlists.font,
-							disabled = function() return not E.db.bags.itemLevel end,
-							set = function(info, value) E.db.bags.itemLevelFont = value; B:UpdateItemLevelDisplay() end,
-						},
-						itemLevelFontSize = {
-							order = 5,
-							type = "range",
-							name = L["Font Size"],
-							min = 4, max = 212, step = 1,
-							disabled = function() return not E.db.bags.itemLevel end,
-							set = function(info, value) E.db.bags.itemLevelFontSize = value; B:UpdateItemLevelDisplay() end,
-						},
-						itemLevelFontOutline = {
-							order = 6,
-							type = "select",
-							name = L["Font Outline"],
-							disabled = function() return not E.db.bags.itemLevel end,
-							set = function(info, value) E.db.bags.itemLevelFontOutline = value; B:UpdateItemLevelDisplay() end,
-							values = {
-								['NONE'] = L["None"],
-								['OUTLINE'] = 'OUTLINE',
-								['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
-								['THICKOUTLINE'] = 'THICKOUTLINE',
-							},
+							type = "toggle",
+							name = L["Top To Bottom"],
+							desc = L["If enabled then the top most bag will be filled first when cleaning bags. Each bag slot will always be filled from top to bottom. This has no effect on bags in the bank."],
+							set = function(info, value)
+								E.db.bags.defaultSorting[ info[#info] ] = value
+								SetSortBagsRightToLeft(value)
+							end,
 						},
 					},
 				},
@@ -259,8 +181,130 @@ E.Options.args.bags = {
 				},
 			},
 		},
-		bagBar = {
+		itemLevelGroup = {
 			order = 5,
+			type = "group",
+			name = L["Item Level"],
+			disabled = function() return not E.bags end,
+			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Item Level"],
+				},
+				itemLevel = {
+					order = 1,
+					type = 'toggle',
+					name = L["Display Item Level"],
+					desc = L["Displays item level on equippable items."],
+					set = function(info, value) E.db.bags.itemLevel = value; B:UpdateItemLevelDisplay() end,
+				},
+				useTooltipScanning = {
+					order = 2,
+					type = 'toggle',
+					name = L["Use Tooltip Scanning"],
+					desc = L["This makes the item level display more reliable but uses more resources. If this is disabled then upgraded items will not show the correct item level."],
+					set = function(info, value) E.db.bags.useTooltipScanning = value; B:UpdateItemLevelDisplay() end,
+				},
+				itemLevelThreshold = {
+					order = 3,
+					name = L["Item Level Threshold"],
+					desc = L["The minimum item level required for it to be shown."],
+					type = 'range',
+					min = 1, max = 1000, step = 1,
+					disabled = function() return not E.db.bags.itemLevel end,
+					set = function(info, value) E.db.bags.itemLevelThreshold = value; B:UpdateItemLevelDisplay() end,
+				},
+				itemLevelFont = {
+					order = 4,
+					type = "select",
+					dialogControl = 'LSM30_Font',
+					name = L["Font"],
+					values = AceGUIWidgetLSMlists.font,
+					disabled = function() return not E.db.bags.itemLevel end,
+					set = function(info, value) E.db.bags.itemLevelFont = value; B:UpdateItemLevelDisplay() end,
+				},
+				itemLevelFontSize = {
+					order = 5,
+					type = "range",
+					name = L["Font Size"],
+					min = 4, max = 212, step = 1,
+					disabled = function() return not E.db.bags.itemLevel end,
+					set = function(info, value) E.db.bags.itemLevelFontSize = value; B:UpdateItemLevelDisplay() end,
+				},
+				itemLevelFontOutline = {
+					order = 6,
+					type = "select",
+					name = L["Font Outline"],
+					disabled = function() return not E.db.bags.itemLevel end,
+					set = function(info, value) E.db.bags.itemLevelFontOutline = value; B:UpdateItemLevelDisplay() end,
+					values = {
+						['NONE'] = L["None"],
+						['OUTLINE'] = 'OUTLINE',
+						['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
+						['THICKOUTLINE'] = 'THICKOUTLINE',
+					},
+				},
+			},
+		},
+		countGroup = {
+			order = 6,
+			type = "group",
+			name = L["Item Count Font"],
+			disabled = function() return not E.bags end,
+			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Item Count Font"],
+				},
+				countFont = {
+					order = 1,
+					type = "select",
+					dialogControl = 'LSM30_Font',
+					name = L["Font"],
+					values = AceGUIWidgetLSMlists.font,
+					set = function(info, value) E.db.bags.countFont = value; B:UpdateCountDisplay() end,
+				},
+				countFontColor = {
+					order = 2,
+					type = 'color',
+					name = L["Color"],
+					get = function(info)
+						local t = E.db.bags[ info[#info] ]
+						local d = P.bags[info[#info]]
+						return t.r, t.g, t.b, t.a, d.r, d.g, d.b
+					end,
+					set = function(info, r, g, b)
+						E.db.bags[ info[#info] ] = {}
+						local t = E.db.bags[ info[#info] ]
+						t.r, t.g, t.b = r, g, b
+						B:UpdateCountDisplay()
+					end,
+				},
+				countFontSize = {
+					order = 3,
+					type = "range",
+					name = L["Font Size"],
+					min = 4, max = 212, step = 1,
+					set = function(info, value) E.db.bags.countFontSize = value; B:UpdateCountDisplay() end,
+				},
+				countFontOutline = {
+					order = 4,
+					type = "select",
+					name = L["Font Outline"],
+					set = function(info, value) E.db.bags.countFontOutline = value; B:UpdateCountDisplay() end,
+					values = {
+						['NONE'] = L["None"],
+						['OUTLINE'] = 'OUTLINE',
+						['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
+						['THICKOUTLINE'] = 'THICKOUTLINE',
+					},
+				},
+			},
+		},
+		bagBar = {
+			order = 7,
 			type = "group",
 			name = L["Bag-Bar"],
 			get = function(info) return E.db.bags.bagBar[ info[#info] ] end,
@@ -327,9 +371,10 @@ E.Options.args.bags = {
 			},
 		},
 		bagSortingGroup = {
-			order = 6,
+			order = 8,
 			type = "group",
 			name = L["Bag Sorting"],
+			disabled = function() return (E.db.bags.defaultSorting.bags and E.db.bags.defaultSorting.bank) end,
 			args = {
 				header = {
 					order = 0,
@@ -424,7 +469,7 @@ E.Options.args.bags = {
 			},
 		},
 		search_syntax = {
-			order = 7,
+			order = 20,
 			type = "group",
 			name = L["Search Syntax"],
 			disabled = function() return not E.bags end,

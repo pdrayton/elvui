@@ -1305,7 +1305,11 @@ function B:ContructContainerFrame(name, isBank)
 		f.sortButton:SetScript("OnEnter", BagItemAutoSortButton:GetScript("OnEnter"))
 		f.sortButton:SetScript('OnClick', function()
 			if f.holderFrame:IsShown() then
-				B:CommandDecorator(B.SortBags, 'bank')();
+				if E.db.bags.defaultSorting.bank then
+					SortBankBags();
+				else
+					B:CommandDecorator(B.SortBags, 'bank')();
+				end
 			else
 				SortReagentBankBags()
 			end
@@ -1440,7 +1444,13 @@ function B:ContructContainerFrame(name, isBank)
 		f.sortButton:GetDisabledTexture():SetDesaturated(1)
 		f.sortButton:StyleButton(nil, true)
 		f.sortButton:SetScript("OnEnter", BagItemAutoSortButton:GetScript("OnEnter"))
-		f.sortButton:SetScript('OnClick', function() B:CommandDecorator(B.SortBags, 'bags')(); end)
+		f.sortButton:SetScript('OnClick', function()
+			if E.db.bags.defaultSorting.bags then
+				SortBags();
+			else
+				B:CommandDecorator(B.SortBags, 'bags')();
+			end
+		end)
 		if E.db.bags.disableBagSort then
 			f.sortButton:Disable()
 		end
@@ -1848,6 +1858,9 @@ function B:Initialize()
 
 	--Enable/Disable "Loot to Leftmost Bag"
 	SetInsertItemsLeftToRight(E.db.bags.reverseLoot)
+	
+	--Choose whether the top most bag should be filled first
+	SetSortBagsRightToLeft(E.db.bags.defaultSorting.topBagFirst)
 end
 
 E:RegisterModule(B:GetName())
