@@ -537,6 +537,31 @@ function B:REAGENTBANK_PURCHASED()
 	ElvUIReagentBankFrame.cover:Hide()
 end
 
+local function BagButton_OnShow(self)
+	self.FilterParent.FilterIcon:Hide();
+
+	if self.id == 0 then
+		--Backpack doesn't use a filter icon.
+		return
+	end
+
+	if (not IsInventoryItemProfessionBag("player", ContainerIDToInventoryID(self.id))) then
+		for i = LE_BAG_FILTER_FLAG_EQUIPMENT, NUM_LE_BAG_FILTER_FLAGS do
+			local active = false;
+			if ( self.id > NUM_BAG_SLOTS ) then
+				active = GetBankBagSlotFlag(self.id - NUM_BAG_SLOTS, i);
+			else
+				active = GetBagSlotFlag(self.id, i);
+			end
+			if ( active ) then
+				self.FilterParent.FilterIcon.Icon:SetAtlas(BAG_FILTER_ICONS[i], true);
+				self.FilterParent.FilterIcon:Show();
+				break;
+			end
+		end
+	end
+end
+
 function B:Layout(isBank)
 	if E.private.bags.enable ~= true then return; end
 	local f = self:GetContainerFrame(isBank);
@@ -568,8 +593,12 @@ function B:Layout(isBank)
 				if(isBank) then
 					f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIBankBag" .. bagID - 4, f.ContainerHolder, "BankItemButtonBagTemplate")
 					f.ContainerHolder[i]:SetScript('OnClick', function(self, button)
-						local inventoryID = self:GetInventorySlot();
-						PutItemInBag(inventoryID);--Put bag on empty slot, or drop item in this bag
+						if button == "RightButton" then
+							ToggleDropDownMenu(1, nil, self.FilterParent.FilterDropDown, self, 0, 0);
+						else
+							local inventoryID = self:GetInventorySlot();
+							PutItemInBag(inventoryID);--Put bag on empty slot, or drop item in this bag
+						end
 					end)
 				elseif bagID == 0 then --Backpack
 					f.ContainerHolder[i] = CreateFrame("CheckButton", "ElvUIBackpackButton", f.ContainerHolder, "ItemButtonTemplate, ItemAnimTemplate")
@@ -621,18 +650,25 @@ function B:Layout(isBank)
 				f.ContainerHolder[i].iconTexture:SetTexCoord(unpack(E.TexCoords))
 
 				--Default UI bag sorting functionality
+				--Create a parent frame so we can use :SetID on it to match the container ID.
 				f.ContainerHolder[i].FilterParent = CreateFrame("Frame", "$parentFilterParent", f.ContainerHolder[i])
 				f.ContainerHolder[i].FilterParent:SetID(bagID)
+				--Create the little icon showing what type of items the bag is assigned to
 				local FilterIcon = CreateFrame("Button", "$parentFilterIcon", f.ContainerHolder[i].FilterParent)
+				f.ContainerHolder[i].FilterParent.FilterIcon = FilterIcon
 				FilterIcon:SetSize(28,28)
-				FilterIcon:RegisterForClicks("RightButtonUp")
+				FilterIcon:RegisterForClicks("RightButtonUp") --To open the menu we only allow right click
 				FilterIcon:SetPoint("CENTER", f.ContainerHolder[i], "BOTTOMRIGHT", -9, 9)
 				FilterIcon.Icon = FilterIcon:CreateTexture(nil, "OVERLAY")
 				FilterIcon.Icon:SetAtlas("bags-icon-consumables", true)
 				FilterIcon.Icon:SetPoint("CENTER")
+
+				--Make sure the filter icon is shown above the bag texture
 				FilterIcon:SetScript("OnShow", function(self)
 					self:SetFrameLevel(self:GetParent():GetParent():GetFrameLevel()+1)
 				end)
+
+				--Change click/enter/leave events on the filter icon to target the actual bag button
 				FilterIcon:SetScript("OnClick", function(self, button)
 					local target = self:GetParent():GetParent()
 					target:GetScript("OnClick")(target, button);
@@ -645,35 +681,13 @@ function B:Layout(isBank)
 					local target = self:GetParent():GetParent()
 					target:GetScript("OnLeave")(target);
 				end)
-				f.ContainerHolder[i].FilterParent.FilterIcon = FilterIcon
 
+				--Create the dropdown menu using existing Blizzard code
 				f.ContainerHolder[i].FilterParent.FilterDropDown = CreateFrame("Frame", "$parentFilterDropDown", f.ContainerHolder[i].FilterParent, "UIDropDownMenuTemplate")
 				UIDropDownMenu_Initialize(f.ContainerHolder[i].FilterParent.FilterDropDown, ContainerFrameFilterDropDown_Initialize, "MENU");
 
-				f.ContainerHolder[i]:SetScript("OnShow", function(self)
-					self.FilterParent.FilterIcon:Hide();
-
-					if self.id == 0 then
-						--Backpack
-						return
-					end
-
-					if (not IsInventoryItemProfessionBag("player", ContainerIDToInventoryID(self.id))) then
-						for i = LE_BAG_FILTER_FLAG_EQUIPMENT, NUM_LE_BAG_FILTER_FLAGS do
-							local active = false;
-							if ( self.id > NUM_BAG_SLOTS ) then
-								active = GetBankBagSlotFlag(self.id - NUM_BAG_SLOTS, i);
-							else
-								active = GetBagSlotFlag(self.id, i);
-							end
-							if ( active ) then
-								self.FilterParent.FilterIcon.Icon:SetAtlas(BAG_FILTER_ICONS[i], true);
-								self.FilterParent.FilterIcon:Show();
-								break;
-							end
-						end
-					end
-				end)
+				--Update filter icon when the bag button is shown
+				f.ContainerHolder[i]:SetScript("OnShow", BagButton_OnShow)
 			end
 
 			f.ContainerHolder:Size(((buttonSize + buttonSpacing) * (isBank and i - 1 or i)) + buttonSpacing,buttonSize + (buttonSpacing * 2))
