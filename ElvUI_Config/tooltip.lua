@@ -5,7 +5,7 @@ local TT = E:GetModule('Tooltip')
 E.Options.args.tooltip = {
 	type = "group",
 	name = L["Tooltip"],
-	childGroups = "select",
+	childGroups = "tab",
 	get = function(info) return E.db.tooltip[ info[#info] ] end,
 	set = function(info, value) E.db.tooltip[ info[#info] ] = value; end,
 	args = {
@@ -27,6 +27,11 @@ E.Options.args.tooltip = {
 			name = L["General"],
 			disabled = function() return not E.Tooltip; end,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["General"],
+				},
 				cursorAnchor = {
 					order = 1,
 					type = 'toggle',
@@ -75,10 +80,12 @@ E.Options.args.tooltip = {
 						["NONE"] = L["None"],
 					},
 				},
-				useCustomFactionColors = {
+				colorAlpha = {
 					order = 8,
-					type = 'toggle',
-					name = L["Custom Faction Colors"],
+					type = "range",
+					name = OPACITY,
+					isPercent = true,
+					min = 0, max = 1, step = 0.01,
 				},
 				fontGroup = {
 					order = 9,
@@ -116,7 +123,7 @@ E.Options.args.tooltip = {
 							order = 4,
 							type = "range",
 							name = L["Header Font Size"],
-							min = 4, max = 50, step = 1,
+							min = 4, max = 212, step = 1,
 							get = function(info) return E.db.tooltip.headerFontSize end,
 							set = function(info, value) E.db.tooltip.headerFontSize = value; TT:SetTooltipFonts() end,
 						},
@@ -124,7 +131,7 @@ E.Options.args.tooltip = {
 							order = 5,
 							type = "range",
 							name = L["Text Font Size"],
-							min = 4, max = 30, step = 1,
+							min = 4, max = 212, step = 1,
 							get = function(info) return E.db.tooltip.textFontSize end,
 							set = function(info, value) E.db.tooltip.textFontSize = value; TT:SetTooltipFonts() end,
 						},
@@ -133,7 +140,7 @@ E.Options.args.tooltip = {
 							type = "range",
 							name = L["Comparison Font Size"],
 							desc = L["This setting controls the size of text in item comparison tooltips."],
-							min = 4, max = 30, step = 1,
+							min = 4, max = 212, step = 1,
 							get = function(info) return E.db.tooltip.smallTextFontSize end,
 							set = function(info, value) E.db.tooltip.smallTextFontSize = value; TT:SetTooltipFonts() end,
 						},
@@ -144,7 +151,15 @@ E.Options.args.tooltip = {
 					type = "group",
 					name = L["Custom Faction Colors"],
 					guiInline = true,
-					args = {},
+					args = {
+						useCustomFactionColors = {
+							order = 0,
+							type = 'toggle',
+							name = L["Custom Faction Colors"],
+							get = function(info) return E.db.tooltip.useCustomFactionColors end,
+							set = function(info, value) E.db.tooltip.useCustomFactionColors = value; end,
+						},
+					},
 					get = function(info)
 						local t = E.db.tooltip.factionColors[ info[#info] ]
 						local d = P.tooltip.factionColors[ info[#info] ]
@@ -165,6 +180,11 @@ E.Options.args.tooltip = {
 			get = function(info) return E.db.tooltip.visibility[ info[#info] ] end,
 			set = function(info, value) E.db.tooltip.visibility[ info[#info] ] = value; end,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Visibility"],
+				},
 				actionbars = {
 					order = 1,
 					type = 'select',
@@ -219,6 +239,11 @@ E.Options.args.tooltip = {
 			get = function(info) return E.db.tooltip.healthBar[ info[#info] ] end,
 			set = function(info, value) E.db.tooltip.healthBar[ info[#info] ] = value; end,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Health Bar"],
+				},
 				height = {
 					order = 1,
 					name = L["Height"],
@@ -226,8 +251,17 @@ E.Options.args.tooltip = {
 					min = 1, max = 15, step = 1,
 					set = function(info, value) E.db.tooltip.healthBar.height = value; GameTooltipStatusBar:Height(value); end,
 				},
-				fontGroup = {
+				statusPosition = {
 					order = 2,
+					type = "select",
+					name = L["Position"],
+					values = {
+						["BOTTOM"] = L["Bottom"],
+						["TOP"] = L["Top"],
+					},
+				},
+				fontGroup = {
+					order = 3,
 					name = L["Fonts"],
 					type = "group",
 					guiInline = true,
@@ -252,7 +286,7 @@ E.Options.args.tooltip = {
 							order = 3,
 							name = L["Font Size"],
 							type = "range",
-							min = 4, max = 22, step = 1,
+							min = 4, max = 500, step = 1,
 							set = function(info, value)
 								E.db.tooltip.healthBar.fontSize = value;
 								GameTooltipStatusBar.text:FontTemplate(E.LSM:Fetch("font", E.db.tooltip.healthBar.font), E.db.tooltip.healthBar.fontSize, "OUTLINE")

@@ -209,9 +209,9 @@ E.Options.args.skins = {
 					name = L["LFG Frame"],
 					desc = L["TOGGLESKIN_DESC"],
 				},
-				mounts = {
+				collections = {
 					type = "toggle",
-					name = L["Mounts & Pets"],
+					name = COLLECTIONS,
 					desc = L["TOGGLESKIN_DESC"],
 				},
 				quest = {
@@ -322,6 +322,31 @@ E.Options.args.skins = {
 				objectiveTracker = {
 					type = "toggle",
 					name = OBJECTIVES_TRACKER_LABEL,
+					desc = L["TOGGLESKIN_DESC"],
+				},
+				orderhall = {
+					type = "toggle",
+					name = L["Orderhall"], -- Temp Name
+					desc = L["TOGGLESKIN_DESC"],
+				},
+				artifact = {
+					type = "toggle",
+					name = L["Artifact"], -- Temp Name
+					desc = L["TOGGLESKIN_DESC"],
+				},
+				talkinghead = {
+					type = "toggle",
+					name = L["TalkingHead"], -- Temp Name
+					desc = L["TOGGLESKIN_DESC"],
+				},
+				AdventureMap = {
+					type = "toggle",
+					name = ADVENTURE_MAP_TITLE,
+					desc = L["TOGGLESKIN_DESC"],
+				},
+				Obliterum = {
+					type = "toggle",
+					name = OBLITERUM_FORGE_TITLE,
 					desc = L["TOGGLESKIN_DESC"],
 				},
 			},

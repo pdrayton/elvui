@@ -3,13 +3,10 @@ local LSM = LibStub("LibSharedMedia-3.0")
 
 --Cache global variables
 --WoW API / Variables
-local GetChatWindowInfo = GetChatWindowInfo
 local SetCVar = SetCVar
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
 -- GLOBALS: CHAT_FONT_HEIGHTS, UNIT_NAME_FONT, DAMAGE_TEXT_FONT, STANDARD_TEXT_FONT
--- GLOBALS: InterfaceOptionsCombatTextPanelTargetDamage, InterfaceOptionsCombatTextPanelPeriodicDamage
--- GLOBALS: InterfaceOptionsCombatTextPanelPetDamage, InterfaceOptionsCombatTextPanelHealing
 -- GLOBALS: GameTooltipHeader, SystemFont_Shadow_Large_Outline, NumberFont_OutlineThick_Mono_Small
 -- GLOBALS: NumberFont_Outline_Huge, NumberFont_Outline_Large, NumberFont_Outline_Med
 -- GLOBALS: NumberFont_Shadow_Med, NumberFont_Shadow_Small, QuestFont, QuestFont_Large
@@ -19,7 +16,7 @@ local SetCVar = SetCVar
 -- GLOBALS: SystemFont_Shadow_Outline_Huge2, SystemFont_Shadow_Small, SystemFont_Small
 -- GLOBALS: SystemFont_Tiny, Tooltip_Med,  Tooltip_Small, ZoneTextString, SubZoneTextString
 -- GLOBALS: PVPInfoTextString, PVPArenaTextString, CombatTextFont, FriendsFont_Normal
--- GLOBALS: FriendsFont_Small, FriendsFont_Large, FriendsFont_UserText
+-- GLOBALS: FriendsFont_Small, FriendsFont_Large, FriendsFont_UserText, GameFontHighlightMedium
 
 local function SetFont(obj, font, size, style, r, g, b, sr, sg, sb, sox, soy)
 	obj:SetFont(font, size, style)
@@ -35,24 +32,18 @@ function E:UpdateBlizzardFonts()
 	local NUMBER     = self["media"].normFont
 	local NAMEFONT		 = LSM:Fetch('font', self.private.general.namefont)
 	local MONOCHROME = ''
-	local _, editBoxFontSize, _, _, _, _, _, _, _, _ = GetChatWindowInfo(1)
 
 	CHAT_FONT_HEIGHTS = {6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}
 
-	if self.db.general.font:lower():find('pixel') then
+	if self.db.general.font == "Homespun" then
 		MONOCHROME = 'MONOCHROME'
 	end
 
 	if self.eyefinity then
-		-- damage are huge on eyefinity, so we disable it
-		InterfaceOptionsCombatTextPanelTargetDamage:Hide()
-		InterfaceOptionsCombatTextPanelPeriodicDamage:Hide()
-		InterfaceOptionsCombatTextPanelPetDamage:Hide()
-		InterfaceOptionsCombatTextPanelHealing:Hide()
-		SetCVar("CombatLogPeriodicSpells",0)
-		SetCVar("PetMeleeDamage",0)
-		SetCVar("CombatDamage",0)
-		SetCVar("CombatHealing",0)
+		SetCVar("floatingcombattextcombatlogperiodicspells",0)
+		SetCVar("floatingcombattextpetmeleedamage",0)
+		SetCVar("floatingcombattextcombatdamage",0)
+		SetCVar("floatingcombattextcombathealing",0)
 
 		-- set an invisible font for xp, honor kill, etc
 		COMBAT = [=[Interface\Addons\ElvUI\media\fonts\Invisible.ttf]=]
@@ -78,6 +69,7 @@ function E:UpdateBlizzardFonts()
 		SetFont(QuestFont_Large,                    NORMAL, 14)
 		SetFont(SystemFont_Large,                   NORMAL, 15)
 		SetFont(GameFontNormalMed3,					NORMAL, 15)
+		SetFont(GameFontHighlightMedium,            NORMAL, 15)
 		SetFont(SystemFont_Shadow_Huge1,			NORMAL, 20, MONOCHROME.."OUTLINE") -- Raid Warning, Boss emote frame too
 		SetFont(SystemFont_Med1,                    NORMAL, self.db.general.fontSize)
 		SetFont(SystemFont_Med3,                    NORMAL, self.db.general.fontSize*1.1)
@@ -96,7 +88,7 @@ function E:UpdateBlizzardFonts()
 		SetFont(SubZoneTextString,					NORMAL, 25, MONOCHROME.."OUTLINE")
 		SetFont(PVPInfoTextString,					NORMAL, 22, MONOCHROME.."OUTLINE")
 		SetFont(PVPArenaTextString,					NORMAL, 22, MONOCHROME.."OUTLINE")
-		SetFont(CombatTextFont,                     COMBAT, 200, "OUTLINE") -- number here just increase the font quality.
+		SetFont(CombatTextFont,                     COMBAT, 200, MONOCHROME.."OUTLINE") -- number here just increase the font quality.
 		SetFont(FriendsFont_Normal, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_Small, NORMAL, self.db.general.fontSize)
 		SetFont(FriendsFont_Large, NORMAL, self.db.general.fontSize)

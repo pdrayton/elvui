@@ -4,12 +4,13 @@ local Sticky = LibStub("LibSimpleSticky-1.0")
 --Cache global variables
 --Lua functions
 local _G = _G
-local type, unpack, pairs = type, unpack, pairs
-local min = math.min
+local type, unpack, pairs, error = type, unpack, pairs, error
 local format, split, find = string.format, string.split, string.find
 --WoW API / Variables
 local CreateFrame = CreateFrame
 local InCombatLockdown = InCombatLockdown
+local IsControlKeyDown = IsControlKeyDown
+local IsShiftKeyDown = IsShiftKeyDown
 local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
@@ -30,8 +31,6 @@ end
 
 local function GetPoint(obj)
 	local point, anchor, secondaryPoint, x, y = obj:GetPoint()
-
-
 	if not anchor then anchor = ElvUIParent end
 
 	return format('%s,%s,%s,%d,%d', point, anchor:GetName(), secondaryPoint, E:Round(x), E:Round(y))
@@ -59,13 +58,17 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 	if overlay == nil then overlay = true end
 	local point, anchor, secondaryPoint, x, y = split(',', GetPoint(parent))
 
+	--Use dirtyWidth / dirtyHeight to set initial size if possible
+	local width = parent.dirtyWidth or parent:GetWidth()
+	local height = parent.dirtyHeight or parent:GetHeight()
+
 	local f = CreateFrame("Button", name, E.UIParent)
 	f:SetClampedToScreen(true)
 	f:RegisterForDrag("LeftButton", "RightButton")
 	f:EnableMouseWheel(true)
 	f:SetMovable(true)
-	f:Width(parent:GetWidth())
-	f:Height(parent:GetHeight())
+	f:Width(width)
+	f:Height(height)
 	f:SetTemplate("Transparent", nil, nil, true)
 	f:Hide()
 	f.parent = parent
@@ -111,8 +114,8 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 		end
 		local point, anchor, secondaryPoint, x, y = split(delim, anchorString)
 		f:Point(point, anchor, secondaryPoint, x, y)
+		f.anchor = anchor
 	else
-
 		f:Point(point, anchor, secondaryPoint, x, y)
 	end
 
@@ -140,7 +143,16 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 
 		local x, y, point = E:CalculateMoverPoints(self)
 		self:ClearAllPoints()
-		self:Point(self.positionOverride or point, E.UIParent, self.positionOverride and "BOTTOMLEFT" or point, x, y)
+		local overridePoint;
+		if (self.positionOverride) then
+			if (self.positionOverride == "BOTTOM" or self.positionOverride == "TOP") then
+				overridePoint = "BOTTOM";
+			else
+				overridePoint = "BOTTOMLEFT";
+			end
+		end
+
+		self:Point(self.positionOverride or point, E.UIParent, overridePoint and overridePoint or point, x, y)
 		if self.positionOverride then
 			self.parent:ClearAllPoints()
 			self.parent:Point(self.positionOverride, self, self.positionOverride)
@@ -182,6 +194,8 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 			--Allow resetting of anchor by Ctrl+RightClick
 			if IsControlKeyDown() and self.textString then
 				E:ResetMovers(self.textString)
+			elseif IsShiftKeyDown() then --Allow hiding a mover temporarily
+				self:Hide()
 			end
 		end
 	end
@@ -195,7 +209,7 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 		self:SetBackdropBorderColor(unpack(E["media"].rgbvaluecolor))
 	end
 
-	local function OnMouseWheel(self, delta)
+	local function OnMouseWheel(_, delta)
 		if IsShiftKeyDown() then
 			E:NudgeMover(delta)
 		else
@@ -220,7 +234,7 @@ local function CreateMover(parent, name, text, overlay, snapOffset, postdrag)
 
 	if postdrag ~= nil and type(postdrag) == 'function' then
 		f:RegisterEvent("PLAYER_ENTERING_WORLD")
-		f:SetScript("OnEvent", function(self, event)
+		f:SetScript("OnEvent", function(self)
 			postdrag(f, E:GetScreenQuadrant(f))
 			self:UnregisterAllEvents()
 		end)
@@ -277,6 +291,12 @@ function E:CalculateMoverPoints(mover, nudgeX, nudgeY)
 		elseif(mover.positionOverride == "BOTTOMRIGHT") then
 			x = mover:GetRight() - E.diffGetRight
 			y = mover:GetBottom() - E.diffGetBottom
+		elseif(mover.positionOverride == "BOTTOM") then
+			x = mover:GetCenter() - screenCenter;
+			y = mover:GetBottom() - E.diffGetBottom;
+		elseif(mover.positionOverride == "TOP") then
+			x = mover:GetCenter() - screenCenter;
+			y = mover:GetTop() - E.diffGetTop;
 		end
 	end
 
@@ -305,7 +325,11 @@ function E:SaveMoverPosition(name)
 	if not _G[name] then return end
 	if not E.db.movers then E.db.movers = {} end
 
-	E.db.movers[name] = GetPoint(_G[name])
+	local mover = _G[name]
+	local _, anchor = mover:GetPoint()
+	mover.anchor = anchor:GetName()
+
+	E.db.movers[name] = GetPoint(mover)
 end
 
 function E:SetMoverSnapOffset(name, offset)
@@ -323,7 +347,6 @@ end
 
 function E:CreateMover(parent, name, text, overlay, snapoffset, postdrag, moverTypes)
 	if not moverTypes then moverTypes = 'ALL,GENERAL' end
-	local p, p2, p3, p4, p5 = parent:GetPoint()
 
 	if E.CreatedMovers[name] == nil then
 		E.CreatedMovers[name] = {}
@@ -365,17 +388,17 @@ function E:DisableMover(name)
 	if(self.DisabledMovers[name]) then return end
 	if(not self.CreatedMovers[name]) then
 		error("mover doesn't exist")
-	end	
-		
+	end
+
 	self.DisabledMovers[name] = {}
 	for x, y in pairs(self.CreatedMovers[name]) do
 		self.DisabledMovers[name][x] = y
 	end
-	
+
 	if self.configMode then
 		_G[name]:Hide()
 	end
-	
+
 	self.CreatedMovers[name] = nil
 end
 
@@ -383,17 +406,22 @@ function E:EnableMover(name)
 	if(self.CreatedMovers[name]) then return end
 	if(not self.DisabledMovers[name]) then
 		error("mover doesn't exist")
-	end	
-	
+	end
+
 	self.CreatedMovers[name] = {}
 	for x, y in pairs(self.DisabledMovers[name]) do
 		self.CreatedMovers[name][x] = y
 	end
-	
+
+	--Make sure we add anchor information from a potential profile switch
+	if E.db["movers"] and E.db["movers"][name] and type(E.db["movers"][name]) == 'string' then
+		self.CreatedMovers[name]["point"] = E.db["movers"][name]
+	end
+
 	if self.configMode then
 		_G[name]:Show()
-	end	
-	
+	end
+
 	self.DisabledMovers[name] = nil
 end
 
@@ -415,7 +443,6 @@ function E:ResetMovers(arg)
 	else
 		for name, _ in pairs(E.CreatedMovers) do
 			for key, value in pairs(E.CreatedMovers[name]) do
-				local mover
 				if key == "text" then
 					if arg == value then
 						local f = _G[name]
@@ -439,6 +466,13 @@ end
 
 --Profile Change
 function E:SetMoversPositions()
+	--E:SetMoversPositions() is the first function called in E:UpdateAll().
+	--Because of that, we can allow ourselves to re-enable all disabled movers here,
+	--as the subsequent updates to these elements will disable them again if needed.
+	for name in pairs(E.DisabledMovers) do
+		E:EnableMover(name)
+	end
+
 	for name, _ in pairs(E.CreatedMovers) do
 		local f = _G[name]
 		local point, anchor, secondaryPoint, x, y
@@ -459,6 +493,13 @@ function E:SetMoversPositions()
 			f:ClearAllPoints()
 			f:Point(point, anchor, secondaryPoint, x, y)
 		end
+	end
+end
+
+function E:SetMoversClampedToScreen(value)
+	for name, _ in pairs(E.CreatedMovers) do
+		local f = _G[name]
+		f:SetClampedToScreen(value)
 	end
 end
 

@@ -4,6 +4,7 @@ local CH = E:GetModule('Chat')
 E.Options.args.chat = {
 	type = "group",
 	name = L["Chat"],
+	childGroups = "tab",
 	get = function(info) return E.db.chat[ info[#info] ] end,
 	set = function(info, value) E.db.chat[ info[#info] ] = value end,
 	args = {
@@ -23,8 +24,12 @@ E.Options.args.chat = {
 			order = 3,
 			type = "group",
 			name = L["General"],
-			guiInline = true,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["General"],
+				},
 				url = {
 					order = 1,
 					type = 'toggle',
@@ -115,13 +120,24 @@ E.Options.args.chat = {
 					name = L["Chat History"],
 					desc = L["Log the main chat frames history. So when you reloadui or log in and out you see the history from your last session."],
 				},
-				spacer = {
+				useAltKey = {
 					order = 10,
-					type = 'description',
-					name = '',
+					type = "toggle",
+					name = L["Use Alt Key"],
+					desc = L["Require holding the Alt key down to move cursor or cycle through messages in the editbox."],
+					set = function(self, value)
+						E.db.chat.useAltKey = value;
+						CH:UpdateSettings()
+					end,
+				},
+				classColorMentionsChat = {
+					order = 11,
+					type = "toggle",
+					name = L["Class Color Mentions"],
+					desc = L["Use class color for the names of players when they are mentioned."],
 				},
 				throttleInterval = {
-					order = 11,
+					order = 12,
 					type = 'range',
 					name = L["Spam Interval"],
 					desc = L["Prevent the same messages from displaying in chat more than once within this set amount of seconds, set to zero to disable."],
@@ -134,7 +150,7 @@ E.Options.args.chat = {
 					end,
 				},
 				scrollDownInterval = {
-					order = 12,
+					order = 13,
 					type = 'range',
 					name = L["Scroll Interval"],
 					desc = L["Number of time in seconds to scroll down to the bottom of the chat window if you are not scrolled down completely."],
@@ -143,8 +159,27 @@ E.Options.args.chat = {
 						E.db.chat[ info[#info] ] = value
 					end,
 				},
+				numAllowedCombatRepeat = {
+					order = 14,
+					type = "range",
+					name = L["Allowed Combat Repeat"],
+					desc = L["Number of repeat characters while in combat before the chat editbox is automatically closed."],
+					min = 2, max = 10, step = 1,
+				},
+				numScrollMessages = {
+					order = 15,
+					type = "range",
+					name = L["Scroll Messages"],
+					desc = L["Number of messages you scroll for each step."],
+					min = 1, max = 10, step = 1,
+				},
+				spacer = {
+					order = 16,
+					type = "description",
+					name = " ",
+				},
 				timeStampFormat = {
-					order = 13,
+					order = 17,
 					type = 'select',
 					name = TIMESTAMPS_LABEL,
 					desc = OPTION_TOOLTIP_TIMESTAMPS,
@@ -158,15 +193,41 @@ E.Options.args.chat = {
 						["%H:%M:%S "] =	"15:27:32"
 					},
 				},
-
+				useCustomTimeColor = {
+					order = 18,
+					type = "toggle",
+					name = L["Custom Timestamp Color"],
+					disabled = function() return not E.db.chat.timeStampFormat == "NONE" end,
+				},
+				customTimeColor = {
+					order = 19,
+					type = "color",
+					hasAlpha = false,
+					name = L["Timestamp Color"],
+					disabled = function() return (not E.db.chat.timeStampFormat == "NONE" or not E.db.chat.useCustomTimeColor) end,
+					get = function(info)
+						local t = E.db.chat.customTimeColor
+						local d = P.chat.customTimeColor
+						return t.r, t.g, t.b, t.a, d.r, d.g, d.b
+					end,
+					set = function(info, r, g, b)
+						E.db.chat.customTimeColor = {}
+						local t = E.db.chat.customTimeColor
+						t.r, t.g, t.b = r, g, b
+					end,
+				},
 			},
 		},
 		alerts = {
 			order = 4,
 			type = 'group',
 			name = L["Alerts"],
-			guiInline = true,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Alerts"],
+				},
 				whisperSound = {
 					order = 1,
 					type = 'select', dialogControl = 'LSM30_Sound',
@@ -198,8 +259,12 @@ E.Options.args.chat = {
 			order = 5,
 			type = 'group',
 			name = L["Panels"],
-			guiInline = true,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Panels"],
+				},
 				lockPositions = {
 					order = 1,
 					type = 'toggle',
@@ -287,7 +352,7 @@ E.Options.args.chat = {
 						end
 						bags:Layout(true);
 					end,
-					min = 50, max = 700, step = 1,
+					min = 50, max = 1000, step = 1,
 				},
 				spacer2 = {
 					order = 10,
@@ -316,7 +381,7 @@ E.Options.args.chat = {
 						E:GetModule('Chat'):PositionChat(true);
 						E:GetModule('Bags'):Layout();
 					end,
-					min = 50, max = 700, step = 1,
+					min = 50, max = 1000, step = 1,
 				},
 				panelBackdropNameLeft = {
 					order = 13,
@@ -345,10 +410,14 @@ E.Options.args.chat = {
 		fontGroup = {
 			order = 120,
 			type = 'group',
-			guiInline = true,
 			name = L["Fonts"],
 			set = function(info, value) E.db.chat[ info[#info] ] = value; CH:SetupChat() end,
 			args = {
+				header = {
+					order = 0,
+					type = "header",
+					name = L["Fonts"],
+				},
 				font = {
 					type = "select", dialogControl = 'LSM30_Font',
 					order = 1,
@@ -363,8 +432,7 @@ E.Options.args.chat = {
 					values = {
 						['NONE'] = L["None"],
 						['OUTLINE'] = 'OUTLINE',
-
-						['MONOCHROMEOUTLINE'] = 'MONOCROMEOUTLINE',
+						['MONOCHROMEOUTLINE'] = 'MONOCHROMEOUTLINE',
 						['THICKOUTLINE'] = 'THICKOUTLINE',
 					},
 				},
@@ -378,7 +446,7 @@ E.Options.args.chat = {
 					order = 5,
 					name = L["Tab Font Size"],
 					type = "range",
-					min = 4, max = 22, step = 1,
+					min = 4, max = 212, step = 1,
 				},
 				tabFontOutline = {
 					order = 6,

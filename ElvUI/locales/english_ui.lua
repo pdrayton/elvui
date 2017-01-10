@@ -3,9 +3,6 @@ local AceLocale = LibStub:GetLibrary("AceLocale-3.0");
 local L = AceLocale:NewLocale("ElvUI", "enUS", true, true);
 if not L then return; end
 
---TEMP
-L["A taint has occured that is preventing you from using the queue system. Please reload your user interface and try again."] = true;
-
 --*_ADDON locales
 L["INCOMPATIBLE_ADDON"] = "The addon %s is not compatible with ElvUI's %s module. Please select either the addon or the ElvUI module to disable."
 
@@ -64,6 +61,12 @@ L["says"] = true;
 L["whispers"] = true;
 L["yells"] = true;
 
+--DataBars
+L["Current Level:"] = true;
+L["Honor Remaining:"] = true;
+L["Honor XP:"] = true;
+L["In Bags:"] = true;
+
 --DataTexts
 L["(Hold Shift) Memory Usage"] = true;
 L["AP"] = true;
@@ -77,7 +80,6 @@ L["Character: "] = true
 L["Chest"] = true;
 L["Combat"] = true;
 L["copperabbrev"] = "|cffeda55fc|r" --Also used in Bags
-L["Defeated"] = true;
 L["Deficit:"] = true;
 L["Download"] = true;
 L["DPS"] = true;
@@ -85,10 +87,10 @@ L["Earned:"] = true;
 L["Feet"] = true;
 L["Friends List"] = true;
 L["Friends"] = true; --Also in Skins
+L["Gold:"] = true;
 L["goldabbrev"] = "|cffffd700g|r" --Also used in Bags
 L["Hands"] = true;
 L["Head"] = true;
-L["Hit"] = true;
 L["Hold Shift + Right Click:"] = true;
 L["Home Latency:"] = true;
 L["HP"] = true;
@@ -98,13 +100,13 @@ L["lvl"] = true;
 L["Main Hand"] = true;
 L["Mission(s) Report:"] = true;
 L["Mitigation By Level: "] = true;
-L["Multistrike"] = true;
 L["Naval Mission(s) Report:"] = true;
 L["No Guild"] = true;
 L["Offhand"] = true;
 L["Profit:"] = true;
 L["Reset Data: Hold Shift + Right Click"] = true;
 L["Saved Raid(s)"] = true;
+L["Saved Dungeon(s)"] = true;
 L["Server: "] = true;
 L["Session:"] = true;
 L["Shoulder"] = true;
@@ -121,6 +123,7 @@ L["Waist"] = true;
 L["Wrist"] = true;
 L["|cffFFFFFFLeft Click:|r Change Talent Specialization"] = true;
 L["|cffFFFFFFRight Click:|r Change Loot Specialization"] = true;
+L["|cffFFFFFFShift + Left Click:|r Show Talent Specialization UI"] = true;
 
 --DebugTools
 L["%s: %s tried to call the protected function '%s'."] = true;
@@ -185,11 +188,9 @@ L["Skip Process"] = true;
 L["Sticky Frames"] = true;
 L["Tank"] = true;
 L["The chat windows function the same as Blizzard standard chat windows, you can right click the tabs and drag them around, rename, etc. Please click the button below to setup your chat windows."] = true;
-L["The in-game configuration menu can be accesses by typing the /ec command or by clicking the 'C' button on the minimap. Press the button below if you wish to skip the installation process."] = true;
-L["The Thin Border Theme option will change the overall apperance of your UI. Using Thin Border Theme is a slight performance increase over the traditional layout."] = true;
+L["The in-game configuration menu can be accessed by typing the /ec command or by clicking the 'C' button on the minimap. Press the button below if you wish to skip the installation process."] = true;
 L["Theme Set"] = true;
 L["Theme Setup"] = true;
-L["Thin Border Theme"] = true;
 L["This install process will help you learn some of the features in ElvUI has to offer and also prepare your user interface for usage."] = true;
 L["This is completely optional."] = true;
 L["This part of the installation process sets up your chat windows names, positions and colors."] = true;
@@ -200,32 +201,25 @@ L["This will change the layout of your unitframes and actionbars."] = true;
 L["Trade"] = true;
 L["Welcome to ElvUI version %s!"] = true;
 L["You are now finished with the installation process. If you are in need of technical support please visit us at http://www.tukui.org."] = true;
-L["You can always change fonts and colors of any element of elvui from the in-game configuration."] = true;
+L["You can always change fonts and colors of any element of ElvUI from the in-game configuration."] = true;
 L["You can now choose what layout you wish to use based on your combat role."] = true;
 L["You may need to further alter these settings depending how low you resolution is."] = true;
 L["Your current resolution is %s, this is considered a %s resolution."] = true;
 
 --Misc
 L["ABOVE_THREAT_FORMAT"] = '%s: %.0f%% [%.0f%% above |cff%02x%02x%02x%s|r]'
-L["Average Group iLvl:"] = true;
 L["Bars"] = true; --Also used in UnitFrames
 L["Calendar"] = true;
 L["Can't Roll"] = true;
 L["Disband Group"] = true;
+L["Empty Slot"] = true;
 L["Enable"] = true; --Doesn't fit a section since it's used a lot of places
 L["Experience"] = true;
-L["Farm Mode"] = true; -- Minimap middle click menu
 L["Fishy Loot"] = true;
-L["iLvl"] = true; --Column header in raidbrowser
-L["Important Group Members:"] = true;
 L["Left Click:"] = true; --layout\layout.lua
-L["Raid Browser"] = true; -- Minimap middle click menu
 L["Raid Menu"] = true;
 L["Remaining:"] = true;
 L["Rested:"] = true;
-L["Right Click:"] = true; --layout\layout.lua
-L["Show BG Texts"] = true; --layout\layout.lua
-L["Talent Spec"] = true; --Column header in raidbrowser
 L["Toggle Chat Frame"] = true; --layout\layout.lua
 L["Toggle Configuration"] = true; --layout\layout.lua
 L["XP:"] = true;
@@ -235,10 +229,15 @@ L["You don't have permission to mark targets."] = true;
 L["Alternative Power"] = true;
 L["Archeology Progress Bar"] = true;
 L["Arena Frames"] = true; --Also used in UnitFrames
+L["Artifact Bar"] = true;
+L["Bag Mover (Grow Down)"] = true;
+L["Bag Mover (Grow Up)"] = true;
+L["Bag Mover"] = true;
 L["Bags"] = true; --Also in DataTexts
+L["Bank Mover (Grow Down)"] = true;
+L["Bank Mover (Grow Up)"] = true;
 L["Bar "] = true; --Also in ActionBars
 L["BNet Frame"] = true;
-L["BodyGuard Frame"] = true;
 L["Boss Button"] = true;
 L["Boss Frames"] = true; --Also used in UnitFrames
 L["Class Bar"] = true;
@@ -248,7 +247,9 @@ L["Focus Castbar"] = true;
 L["Focus Frame"] = true; --Also used in UnitFrames
 L["FocusTarget Frame"] = true; --Also used in UnitFrames
 L["GM Ticket Frame"] = true;
+L["Honor Bar"] = true;
 L["Left Chat"] = true;
+L["Level Up Display / Boss Banner"] = true;
 L["Loot / Alert Frames"] = true;
 L["Loot Frame"] = true;
 L["Loss Control Icon"] = true;
@@ -267,6 +268,7 @@ L["Player Buffs"] = true;
 L["Player Castbar"] = true;
 L["Player Debuffs"] = true;
 L["Player Frame"] = true; --Also used in UnitFrames
+L["Player Nameplate"] = true;
 L["Player Powerbar"] = true;
 L["Raid Frames"] = true;
 L["Raid Pet Frames"] = true;
@@ -274,6 +276,7 @@ L["Raid-40 Frames"] = true;
 L["Reputation Bar"] = true;
 L["Right Chat"] = true;
 L["Stance Bar"] = true; --Also in ActionBars
+L["Talking Head Frame"] = true
 L["Target Castbar"] = true;
 L["Target Frame"] = true; --Also used in UnitFrames
 L["Target Powerbar"] = true;
@@ -281,12 +284,20 @@ L["TargetTarget Frame"] = true; --Also used in UnitFrames
 L["TargetTargetTarget Frame"] = true; --Also used in UnitFrames
 L["Tooltip"] = true;
 L["Vehicle Seat Frame"] = true;
+L["Zone Ability"] = true
+L["DESC_MOVERCONFIG"] = [=[Movers unlocked. Move them now and click Lock when you are done.
 
---NamePlates
-L["Discipline"] = true;
-L["Holy"] = true;
-L["Mistweaver"] = true;
-L["Restoration"] = true;
+Options:
+  Shift + RightClick - Hides mover temporarily.
+  Ctrl + RightClick - Resets mover position to default.
+]=]
+
+--Plugin Installer
+L["ElvUI Plugin Installation"] = true;
+L["In Progress"] = true;
+L["List of installations in queue:"] = true;
+L["Pending"] = true;
+L["Steps"] = true;
 
 --Prints
 L[" |cff00ff00bound to |r"] = true;
@@ -310,6 +321,7 @@ L["|cFFE30000Lua error recieved. You can view the error message when you exit co
 
 --Static Popups
 L["A setting you have changed will change an option for this character only. This setting that you have changed will be uneffected by changing user profiles. Changing this setting requires that you reload your User Interface."] = true;
+L["Are you sure you want to apply this font to all ElvUI elements?"] = true;
 L["Are you sure you want to delete all your gray items?"] = true;
 L["Are you sure you want to disband the group?"] = true;
 L["Are you sure you want to reset all the settings on this profile?"] = true;
@@ -324,7 +336,6 @@ L["Do you swear not to post in technical support about something not working wit
 L["ElvUI is five or more revisions out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"] = true;
 L["ElvUI is out of date. You can download the newest version from www.tukui.org. Get premium membership and have ElvUI automatically updated with the Tukui Client!"] = true;
 L["ElvUI needs to perform database optimizations please be patient."] = true;
-L["Enabling/Disabling Bar #6 will toggle a paging option from your main actionbar to prevent duplicating bars, are you sure you want to do this?"] = true;
 L["Hover your mouse over any actionbutton or spellbook button to bind it. Press the escape key or right click to clear the current actionbutton's keybinding."] = true;
 L["I Swear"] = true;
 L["It appears one of your AddOns have disabled the AddOn Blizzard_CompactRaidFrames. This can cause errors and other issues. The AddOn will now be re-enabled."] = true;
@@ -337,7 +348,7 @@ L["The profile you tried to import already exists. Choose a new name or accept t
 L["Type /hellokitty to revert to old settings."] = true;
 L["Using the healer layout it is highly recommended you download the addon Clique if you wish to have the click-to-heal function."] = true;
 L["Yes, Keep Changes!"] = true;
-L["You have changed the pixel perfect option. You will have to complete the installation process to remove any graphical bugs."] = true;
+L["You have changed the Thin Border Theme option. You will have to complete the installation process to remove any graphical bugs."] = true;
 L["You have changed your UIScale, however you still have the AutoScale option enabled in ElvUI. Press accept if you would like to disable the Auto Scale option."] = true;
 L["You have imported settings which may require a UI reload to take effect. Reload now?"] = true;
 L["You must purchase a bank slot first!"] = true;
@@ -354,11 +365,9 @@ L["ElvUI has a dual spec feature which allows you to load different profiles bas
 L["For technical support visit us at http://www.tukui.org."] = true;
 L["If you accidently remove a chat frame you can always go the in-game configuration menu, press install, go to the chat portion and reset them."] = true
 L["If you are experiencing issues with ElvUI try disabling all your addons except ElvUI, remember ElvUI is a full UI replacement addon, you cannot run two addons that do the same thing."] = true;
-L["The buff panel to the right of minimap is a list of your consolidated buffs. You can disable it in Buffs and Debuffs options of ElvUI."] = true;
 L["The focus unit can be set by typing /focus when you are targeting the unit you want to focus. It is recommended you make a macro to do this."] = true;
 L["To move abilities on the actionbars by default hold shift + drag. You can change the modifier key from the actionbar options menu."] = true;
 L["To setup which channels appear in which chat frame, right click the chat tab and go to settings."] = true;
-L["Using the /farmmode <size> command will spawn a larger minimap on your screen that can be moved around, very useful when farming."] = true;
 L["You can access copy chat and chat menu functions by mouse over the top right corner of chat panel and left/right click on the button that will appear."] = true;
 L["You can see someones average item level of their gear by holding shift and mousing over them. It should appear inside the tooltip."] = true;
 L["You can set your keybinds quickly by typing /kb."] = true;
@@ -366,5 +375,6 @@ L["You can toggle the microbar by using your middle mouse button on the minimap 
 L["You can use the /resetui command to reset all of your movers. You can also use the command to reset a specific mover, /resetui <mover name>.\nExample: /resetui Player Frame"] = true;
 
 --UnitFrames
+L["Dead"] = true;
 L["Ghost"] = true;
-L["Offline"] = true;	
+L["Offline"] = true;

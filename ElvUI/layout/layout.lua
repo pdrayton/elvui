@@ -9,7 +9,7 @@ local UIFrameFadeIn, UIFrameFadeOut = UIFrameFadeIn, UIFrameFadeOut
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
 -- GLOBALS: HideLeftChat, HideRightChat, HideBothChat, LeftChatPanel, RightChatPanel, Minimap
--- GLOBALS: GameTooltip, LeftChatToggleButton, RightChatToggleButton, LeftChatTab, RightChatTab
+-- GLOBALS: GameTooltip, LeftChatTab, RightChatTab, LeftChatToggleButton, RightChatToggleButton
 -- GLOBALS: LeftChatDataPanel, LeftMiniPanel, RightChatDataPanel, RightMiniPanel, ElvConfigToggle
 
 local PANEL_HEIGHT = 22;
@@ -18,7 +18,7 @@ local SIDE_BUTTON_WIDTH = 16;
 E.Layout = LO;
 
 local function Panel_OnShow(self)
-	self:SetFrameLevel(0)
+	self:SetFrameLevel(200)
 	self:SetFrameStrata('BACKGROUND')
 end
 
@@ -49,7 +49,7 @@ function LO:Initialize()
 end
 
 function LO:BottomPanelVisibility()
-	if E.db.general.bottomPanel and not E.global.tukuiMode then
+	if E.db.general.bottomPanel then
 		self.BottomPanel:Show()
 	else
 		self.BottomPanel:Hide()
@@ -64,15 +64,15 @@ function LO:TopPanelVisibility()
 	end
 end
 
-local function ChatPanelLeft_OnFade(self)
+local function ChatPanelLeft_OnFade()
 	LeftChatPanel:Hide()
 end
 
-local function ChatPanelRight_OnFade(self)
+local function ChatPanelRight_OnFade()
 	RightChatPanel:Hide()
 end
 
-local function ChatButton_OnEnter(self, ...)
+local function ChatButton_OnEnter(self)
 	if E.db[self.parent:GetName()..'Faded'] then
 		self.parent:Show()
 		UIFrameFadeIn(self.parent, 0.2, self.parent:GetAlpha(), 1)
@@ -87,7 +87,7 @@ local function ChatButton_OnEnter(self, ...)
 	end
 end
 
-local function ChatButton_OnLeave(self, ...)
+local function ChatButton_OnLeave(self)
 	if E.db[self.parent:GetName()..'Faded'] then
 		UIFrameFadeOut(self.parent, 0.2, self.parent:GetAlpha(), 0)
 		UIFrameFadeOut(self, 0.2, self:GetAlpha(), 0)
@@ -96,7 +96,7 @@ local function ChatButton_OnLeave(self, ...)
 	GameTooltip:Hide()
 end
 
-local function ChatButton_OnClick(self, btn)
+local function ChatButton_OnClick(self)
 	GameTooltip:Hide()
 
 	if E.db[self.parent:GetName()..'Faded'] then
@@ -156,7 +156,7 @@ function LO:SetDataPanelStyle()
 		RightChatDataPanel:SetTemplate("Transparent")
 		RightChatToggleButton:SetTemplate("Transparent")
 		RightMiniPanel:SetTemplate("Transparent")
-		ElvConfigToggle:SetTemplate("Transparent")
+		-- ElvConfigToggle:SetTemplate("Transparent")
 	else
 		LeftChatDataPanel:SetTemplate("Default", true)
 		LeftChatToggleButton:SetTemplate("Default", true)
@@ -164,7 +164,7 @@ function LO:SetDataPanelStyle()
 		RightChatDataPanel:SetTemplate("Default", true)
 		RightChatToggleButton:SetTemplate("Default", true)
 		RightMiniPanel:SetTemplate("Default", true)
-		ElvConfigToggle:SetTemplate("Default", true)
+		-- ElvConfigToggle:SetTemplate("Default", true)
 	end
 end
 
@@ -190,12 +190,6 @@ function LO:ToggleChatPanels()
 	end
 	
 	local panelBackdrop = E.db.chat.panelBackdrop
-	if(E.global.tukuiMode) then
-		panelBackdrop = 'HIDEBOTH'
-		RightChatToggleButton:Hide()
-		LeftChatToggleButton:Hide()
-	end
-	
 	if panelBackdrop == 'SHOWBOTH' then
 		LeftChatPanel.backdrop:Show()
 		RightChatPanel.backdrop:Show()
@@ -245,9 +239,9 @@ function LO:CreateChatPanels()
 	--Left Chat
 	local lchat = CreateFrame('Frame', 'LeftChatPanel', E.UIParent)
 	lchat:SetFrameStrata('BACKGROUND')
+	lchat:SetFrameLevel(300)
 	lchat:Size(E.db.chat.panelWidth, E.db.chat.panelHeight)
 	lchat:Point('BOTTOMLEFT', E.UIParent, 4, 4)
-	lchat:SetFrameLevel(lchat:GetFrameLevel() + 2)
 	lchat:CreateBackdrop('Transparent')
 	lchat.backdrop:SetAllPoints()
 	E:CreateMover(lchat, "LeftChatMover", L["Left Chat"])
@@ -270,7 +264,7 @@ function LO:CreateChatPanels()
 	lchatdp:Point('BOTTOMLEFT', lchat, 'BOTTOMLEFT', SPACING + SIDE_BUTTON_WIDTH, SPACING)
 	lchatdp:Point('TOPRIGHT', lchat, 'BOTTOMRIGHT', -SPACING, (SPACING + PANEL_HEIGHT))
 	lchatdp:SetTemplate(E.db.datatexts.panelTransparency and 'Transparent' or 'Default', true)
-
+	
 	E:GetModule('DataTexts'):RegisterPanel(lchatdp, 3, 'ANCHOR_TOPLEFT', -17, 4)
 
 	--Left Chat Toggle Button
@@ -292,9 +286,9 @@ function LO:CreateChatPanels()
 	--Right Chat
 	local rchat = CreateFrame('Frame', 'RightChatPanel', E.UIParent)
 	rchat:SetFrameStrata('BACKGROUND')
+	rchat:SetFrameLevel(300)
 	rchat:Size(E.db.chat.separateSizes and E.db.chat.panelWidthRight or E.db.chat.panelWidth, E.db.chat.separateSizes and E.db.chat.panelHeightRight or E.db.chat.panelHeight)
 	rchat:Point('BOTTOMRIGHT', E.UIParent, -4, 4)
-	rchat:SetFrameLevel(rchat:GetFrameLevel() + 2)
 	rchat:CreateBackdrop('Transparent')
 	rchat.backdrop:SetAllPoints()
 	E:CreateMover(rchat, "RightChatMover", L["Right Chat"])
@@ -370,96 +364,48 @@ function LO:CreateMinimapPanels()
 		LeftMiniPanel:Hide()
 		RightMiniPanel:Hide()
 	end
-
-	local configtoggle = CreateFrame('Button', 'ElvConfigToggle', Minimap)
-	if E.db.auras.consolidatedBuffs.position == "LEFT" then
-		configtoggle:Point('TOPRIGHT', lminipanel, 'TOPLEFT', (E.Border - (E.Spacing*3)), 0)
-		configtoggle:Point('BOTTOMRIGHT', lminipanel, 'BOTTOMLEFT', (E.Border + (E.Spacing*3)), 0)
-	else
-		configtoggle:Point('TOPLEFT', rminipanel, 'TOPRIGHT', (-E.Border + (E.Spacing*3)), 0)
-		configtoggle:Point('BOTTOMLEFT', rminipanel, 'BOTTOMRIGHT', (-E.Border + (E.Spacing*3)), 0)
-	end
-	configtoggle:RegisterForClicks('AnyUp')
-	configtoggle:Width(E.ConsolidatedBuffsWidth - (E.Border*2))
-	configtoggle:SetTemplate(E.db.datatexts.panelTransparency and 'Transparent' or 'Default', true)
-	configtoggle.text = configtoggle:CreateFontString(nil, 'OVERLAY')
-	configtoggle.text:FontTemplate(E.LSM:Fetch("font", E.db.datatexts.font), E.db.datatexts.fontSize, E.db.datatexts.fontOutline)
-	configtoggle.text:SetText('C')
-	configtoggle.text:Point('CENTER')
-	configtoggle.text:SetJustifyH('CENTER')
-	configtoggle:SetScript('OnClick', function(self, btn)
-		if btn == 'LeftButton' then
-			E:ToggleConfig()
-		else
-			E:BGStats()
-		end
-	end)
-	configtoggle:SetScript('OnEnter', function(self)
-		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, -4)
-		GameTooltip:ClearLines()
-		GameTooltip:AddDoubleLine(L["Left Click:"], L["Toggle Configuration"], 1, 1, 1)
-
-		if E.db.datatexts.battleground then
-			GameTooltip:AddDoubleLine(L["Right Click:"], L["Show BG Texts"], 1, 1, 1)
-		end
-		GameTooltip:Show()
-	end)
-	configtoggle:SetScript('OnLeave', function(self)
-		GameTooltip:Hide()
-	end)
 	
-	if(E.global.tukuiMode) then
-		local BottomLine = CreateFrame("Frame", nil, E.UIParent)
-		BottomLine:SetTemplate()
-		BottomLine:Size(2)
-		BottomLine:Point("BOTTOMLEFT", 15, 15)
-		BottomLine:Point("BOTTOMRIGHT", -15, 15)
-		BottomLine:SetFrameStrata("BACKGROUND")
-		BottomLine:SetFrameLevel(0)
+	local f = CreateFrame("Frame", 'BottomMiniPanel', Minimap)
+	f:SetPoint("BOTTOM", Minimap, "BOTTOM")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOM', 0, -10)
+	
+	f = CreateFrame("Frame", 'TopMiniPanel', Minimap)
+	f:SetPoint("TOP", Minimap, "TOP")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOM', 0, -10)		
+	
+	f = CreateFrame("Frame", 'TopLeftMiniPanel', Minimap)
+	f:SetPoint("TOPLEFT", Minimap, "TOPLEFT")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOMLEFT', 0, -10)	
 
-		local LeftVerticalLine = CreateFrame("Frame", nil, BottomLine)
-		LeftVerticalLine:SetTemplate()
-		LeftVerticalLine:Point("BOTTOMLEFT", 0, 0)
-		LeftVerticalLine:SetFrameLevel(0)
-		LeftVerticalLine:SetFrameStrata("BACKGROUND")
+	f = CreateFrame("Frame", 'TopRightMiniPanel', Minimap)
+	f:SetPoint("TOPRIGHT", Minimap, "TOPRIGHT")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOMRIGHT', 0, -10)	
+	
+	f = CreateFrame("Frame", 'BottomLeftMiniPanel', Minimap)
+	f:SetPoint("BOTTOMLEFT", Minimap, "BOTTOMLEFT")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOMLEFT', 0, -10)	
 
-
-		local RightVerticalLine = CreateFrame("Frame", nil, BottomLine)
-		RightVerticalLine:SetTemplate()
-		RightVerticalLine:Point("BOTTOMRIGHT", 0, 0)
-		RightVerticalLine:SetFrameLevel(0)
-		RightVerticalLine:SetFrameStrata("BACKGROUND")
-
-
-		local CubeLeft = CreateFrame("Frame", nil, LeftVerticalLine)
-		CubeLeft:SetTemplate()
-		CubeLeft:Size(10)
-		CubeLeft:Point("BOTTOM", LeftVerticalLine, "TOP", 0, 0)
-		CubeLeft:EnableMouse(true)
-		CubeLeft:SetFrameLevel(0)
-		CubeLeft:SetScript("OnMouseDown", function(self, Button)
-			if (Button == "LeftButton") then	
-				ToggleFrame(ChatMenu)
-			end
-		end)
-
-		local CubeRight = CreateFrame("Frame", nil, RightVerticalLine)
-		CubeRight:SetTemplate()
-		CubeRight:Size(10)
-		CubeRight:Point("BOTTOM", RightVerticalLine, "TOP", 0, 0)
-		CubeRight:EnableMouse(true)
-		CubeRight:SetFrameLevel(0)
-		CubeRight:SetScript("OnMouseDown", function(self, Button)
-			if (Button == "LeftButton") then	
-				ToggleCharacter("ReputationFrame")
-			end
-		end)
-		
-		hooksecurefunc(E:GetModule("Chat"), "PositionChat", function()
-			LeftVerticalLine:Size(2, E.db.chat.panelHeight - 40)
-			RightVerticalLine:Size(2, (E.db.chat.separateSizes and E.db.chat.panelHeightRight or E.db.chat.panelHeight) - 40)	
-		end)
-	end
+	f = CreateFrame("Frame", 'BottomRightMiniPanel', Minimap)
+	f:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT")
+	f:Width(75)
+	f:Height(20)
+	f:SetFrameLevel(Minimap:GetFrameLevel() + 5)
+	E:GetModule('DataTexts'):RegisterPanel(f, 1, 'ANCHOR_BOTTOMRIGHT', 0, -10)
 end
 
 E:RegisterModule(LO:GetName())

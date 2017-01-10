@@ -25,10 +25,11 @@ function E:UIScale(event)
 		self.global.uiScale = GetCVar('uiScale')
 	end
 
+	local minScale = self.global.general.minUiScale or 0.64
 	if self.global.general.autoScale then
-		scale = max(0.64, min(1.15, 768/self.screenheight));
+		scale = max(minScale, min(1.15, 768/self.screenheight));
 	else
-		scale = max(0.64, min(1.15, self.global.uiScale or 768/self.screenheight or UIParent:GetScale()));
+		scale = max(minScale, min(1.15, self.global.uiScale or 768/self.screenheight or UIParent:GetScale()));
 	end
 
 	if self.screenwidth < 1600 then
@@ -63,14 +64,22 @@ function E:UIScale(event)
 		self.eyefinity = width;
 	end
 
-	self.mult = 768/match(GetCVar("gxResolution"), "%d+x(%d+)")/scale;
+	self.mult = 768/match(self.resolution, "%d+x(%d+)")/scale;
 	self.Spacing = self.PixelMode and 0 or self.mult
 	self.Border = (self.PixelMode and self.mult or self.mult*2)
-	--Set UIScale, NOTE: SetCVar for UIScale can cause taints so only do this when we need to..
-	if E.Round and E:Round(UIParent:GetScale(), 5) ~= E:Round(scale, 5) and (event == 'PLAYER_LOGIN') then
-		SetCVar("useUiScale", 1);
-		SetCVar("uiScale", scale);
-		WorldMapFrame.hasTaint = true;
+
+	if self.global.general.autoScale then
+		--Set UIScale, NOTE: SetCVar for UIScale can cause taints so only do this when we need to..
+		if E.Round and E:Round(UIParent:GetScale(), 5) ~= E:Round(scale, 5) and (event == 'PLAYER_LOGIN') then
+			SetCVar("useUiScale", 1);
+			SetCVar("uiScale", scale);
+			WorldMapFrame.hasTaint = true;
+		end
+		
+		--SetCVar for UI scale only accepts value as low as 0.64, so scale UIParent if needed
+		if (scale < 0.64) then
+			UIParent:SetScale(scale)
+		end
 	end
 
 	if (event == 'PLAYER_LOGIN' or event == 'UI_SCALE_CHANGED') then
@@ -95,6 +104,7 @@ function E:UIScale(event)
 			end
 
 			self.UIParent:SetSize(width, height);
+			self.UIParent.origHeight = self.UIParent:GetHeight()
 		else
 			--[[Eyefinity Test mode
 				Resize the E.UIParent to be smaller than it should be, all objects inside should relocate.
@@ -103,10 +113,15 @@ function E:UIScale(event)
 			--self.UIParent:SetSize(UIParent:GetWidth() - 250, UIParent:GetHeight() - 250);
 
 			self.UIParent:SetSize(UIParent:GetSize());
+			self.UIParent.origHeight = self.UIParent:GetHeight()
 		end
 
 		self.UIParent:ClearAllPoints();
-		self.UIParent:Point("CENTER");
+		if self.global.general.commandBarSetting == "ENABLED_RESIZEPARENT" then
+			self.UIParent:Point("BOTTOM");
+		else
+			self.UIParent:Point("CENTER");
+		end
 
 		--Calculate potential coordinate differences
 		self.diffGetLeft = E:Round(abs(UIParent:GetLeft() - self.UIParent:GetLeft()))

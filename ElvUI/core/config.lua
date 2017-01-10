@@ -119,9 +119,9 @@ function E:Grid_Create()
 	for i = 0, E.db.gridSize do
 		local tx = grid:CreateTexture(nil, 'BACKGROUND')
 		if i == E.db.gridSize / 2 then
-			tx:SetTexture(1, 0, 0)
+			tx:SetColorTexture(1, 0, 0)
 		else
-			tx:SetTexture(0, 0, 0)
+			tx:SetColorTexture(0, 0, 0)
 		end
 		tx:Point("TOPLEFT", grid, "TOPLEFT", i*wStep - (size/2), 0)
 		tx:Point('BOTTOMRIGHT', grid, 'BOTTOMLEFT', i*wStep + (size/2), 0)
@@ -130,20 +130,20 @@ function E:Grid_Create()
 
 	do
 		local tx = grid:CreateTexture(nil, 'BACKGROUND')
-		tx:SetTexture(1, 0, 0)
+		tx:SetColorTexture(1, 0, 0)
 		tx:Point("TOPLEFT", grid, "TOPLEFT", 0, -(height/2) + (size/2))
 		tx:Point('BOTTOMRIGHT', grid, 'TOPRIGHT', 0, -(height/2 + size/2))
 	end
 
 	for i = 1, floor((height/2)/hStep) do
 		local tx = grid:CreateTexture(nil, 'BACKGROUND')
-		tx:SetTexture(0, 0, 0)
+		tx:SetColorTexture(0, 0, 0)
 
 		tx:Point("TOPLEFT", grid, "TOPLEFT", 0, -(height/2+i*hStep) + (size/2))
 		tx:Point('BOTTOMRIGHT', grid, 'TOPRIGHT', 0, -(height/2+i*hStep + size/2))
 
 		tx = grid:CreateTexture(nil, 'BACKGROUND')
-		tx:SetTexture(0, 0, 0)
+		tx:SetColorTexture(0, 0, 0)
 
 		tx:Point("TOPLEFT", grid, "TOPLEFT", 0, -(height/2-i*hStep) + (size/2))
 		tx:Point('BOTTOMRIGHT', grid, 'TOPRIGHT', 0, -(height/2-i*hStep + size/2))
@@ -210,7 +210,7 @@ function E:CreateMoverPopup()
 	f:SetFrameLevel(99)
 	f:SetClampedToScreen(true)
 	f:Width(360)
-	f:Height(130)
+	f:Height(170)
 	f:SetTemplate('Transparent')
 	f:Point("BOTTOM", UIParent, 'CENTER', 0, 100)
 	f:SetScript('OnHide', function()
@@ -241,9 +241,9 @@ function E:CreateMoverPopup()
 	desc:SetFontObject("GameFontHighlight")
 	desc:SetJustifyV("TOP")
 	desc:SetJustifyH("LEFT")
-	desc:Point("TOPLEFT", 18, -32)
+	desc:Point("TOPLEFT", 18, -20)
 	desc:Point("BOTTOMRIGHT", -18, 48)
-	desc:SetText(L["Movers unlocked. Move them now and click Lock when you are done."])
+	desc:SetText(L["DESC_MOVERCONFIG"])
 
 	local snapping = CreateFrame("CheckButton", f:GetName()..'CheckButton', f, "OptionsCheckButtonTemplate")
 	_G[snapping:GetName() .. "Text"]:SetText(L["Sticky Frames"])
@@ -259,7 +259,7 @@ function E:CreateMoverPopup()
 	local lock = CreateFrame("Button", f:GetName()..'CloseButton', f, "OptionsButtonTemplate")
 	_G[lock:GetName() .. "Text"]:SetText(L["Lock"])
 
-	lock:SetScript("OnClick", function(self)
+	lock:SetScript("OnClick", function()
 		E:ToggleConfigMode(true)
 		if IsAddOnLoaded("ElvUI_Config") then LibStub("AceConfigDialog-3.0-ElvUI"):Open('ElvUI') end
 		selectedValue = 'ALL'
@@ -334,7 +334,7 @@ function E:CreateMoverPopup()
 	nudgeFrame:Height(110)
 	nudgeFrame:SetTemplate('Transparent')
 	nudgeFrame:Point('TOP', ElvUIMoverPopupWindow, 'BOTTOM', 0, -15)
-	nudgeFrame:SetFrameLevel(100)
+	nudgeFrame:SetFrameLevel(500)
 	nudgeFrame:Hide()
 	nudgeFrame:EnableMouse(true)
 	nudgeFrame:SetClampedToScreen(true)

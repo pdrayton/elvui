@@ -12,7 +12,10 @@ To load the AddOn engine inside another addon add this to the top of your file:
 
 --Cache global variables
 local _G = _G
-local pairs, unpack = pairs, unpack
+local pairs = pairs
+local GameMenuFrame = GameMenuFrame
+local GameMenuButtonLogout = GameMenuButtonLogout
+local GameMenuButtonAddons = GameMenuButtonAddons
 
 BINDING_HEADER_ELVUI = GetAddOnMetadata(..., "Title");
 
@@ -35,7 +38,6 @@ Engine[4] = AddOn.DF["profile"];
 Engine[5] = AddOn.DF["global"];
 
 _G[AddOnName] = Engine;
-Engine[1].UIName = AddOnName
 local tcopy = table.copy
 function AddOn:OnInitialize()
 	if not ElvCharacterDB then
@@ -75,7 +77,7 @@ function AddOn:OnInitialize()
 		end
 	end
 
-	if self.private.general.pixelPerfect and not self.global.tukuiMode then
+	if self.private.general.pixelPerfect then
 		self.Border = self.mult;
 		self.Spacing = 0;
 		self.PixelMode = true;
@@ -91,6 +93,41 @@ function AddOn:OnInitialize()
 
 	if IsAddOnLoaded("Tukui") then
 		self:StaticPopup_Show("TUKUI_ELVUI_INCOMPATIBLE")
+	end
+	
+	local GameMenuButton = CreateFrame("Button", nil, GameMenuFrame, "GameMenuButtonTemplate")
+	GameMenuButton:SetText(AddOnName)
+	GameMenuButton:SetScript("OnClick", function()
+		AddOn:ToggleConfig()
+		HideUIPanel(GameMenuFrame)
+	end)
+	GameMenuFrame[AddOnName] = GameMenuButton
+
+	if not IsAddOnLoaded("ConsolePort") then
+		GameMenuButton:Size(GameMenuButtonLogout:GetWidth(), GameMenuButtonLogout:GetHeight())
+		GameMenuButton:Point("TOPLEFT", GameMenuButtonAddons, "BOTTOMLEFT", 0, -1)
+		hooksecurefunc('GameMenuFrame_UpdateVisibleButtons', self.PositionGameMenuButton)
+	else
+		if GameMenuButton.Middle then
+			GameMenuButton.Middle:Hide()
+			GameMenuButton.Left:Hide()
+			GameMenuButton.Right:Hide()
+		end
+		ConsolePort:GetData().Atlas.SetFutureButtonStyle(GameMenuButton, nil, nil, true)
+		GameMenuButton:Size(240, 46)
+		GameMenuButton:Point("TOP", GameMenuButtonWhatsNew, "BOTTOMLEFT", 0, -1)
+		GameMenuFrame:Size(530, 576)
+	end
+end
+
+function AddOn:PositionGameMenuButton()
+	GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + GameMenuButtonLogout:GetHeight() - 4)
+	local _, relTo, _, _, offY = GameMenuButtonLogout:GetPoint()
+	if relTo ~= GameMenuFrame[AddOnName] then
+		GameMenuFrame[AddOnName]:ClearAllPoints()
+		GameMenuFrame[AddOnName]:Point("TOPLEFT", relTo, "BOTTOMLEFT", 0, -1)
+		GameMenuButtonLogout:ClearAllPoints()
+		GameMenuButtonLogout:Point("TOPLEFT", GameMenuFrame[AddOnName], "BOTTOMLEFT", 0, offY)
 	end
 end
 
@@ -156,10 +193,12 @@ function AddOn:ToggleConfig()
 		self:RegisterEvent('PLAYER_REGEN_ENABLED')
 		return;
 	end
-
+	
 	if not IsAddOnLoaded("ElvUI_Config") then
+
 		local _, _, _, _, reason = GetAddOnInfo("ElvUI_Config")
 		if reason ~= "MISSING" and reason ~= "DISABLED" then
+			self.GUIFrame = false
 			LoadAddOn("ElvUI_Config")
 			--For some reason, GetAddOnInfo reason is "DEMAND_LOADED" even if the addon is disabled.
 			--Workaround: Try to load addon and check if it is loaded right after.
@@ -167,7 +206,7 @@ function AddOn:ToggleConfig()
 				self:Print("|cffff0000Error -- Addon 'ElvUI_Config' not found or is disabled.|r")
 				return
 			end
-			if GetAddOnMetadata("ElvUI_Config", "Version") ~= "1.02" then
+			if GetAddOnMetadata("ElvUI_Config", "Version") ~= "1.04" then
 				self:StaticPopup_Show("CLIENT_UPDATE_REQUEST")
 			end
 		else
@@ -182,13 +221,7 @@ function AddOn:ToggleConfig()
 	if not ACD.OpenFrames[AddOnName] then
 		mode = 'Open'
 	end
-
-	if mode == 'Open' then
-		ElvConfigToggle.text:SetTextColor(unpack(AddOn.media.rgbvaluecolor))
-	else
-		ElvConfigToggle.text:SetTextColor(1, 1, 1)
-	end
-
 	ACD[mode](ACD, AddOnName)
+
 	GameTooltip:Hide() --Just in case you're mouseovered something and it closes.
 end

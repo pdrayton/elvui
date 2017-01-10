@@ -2,10 +2,9 @@ local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, Private
 
 --Cache global variables
 local select, tonumber, assert, type, unpack, pairs = select, tonumber, assert, type, unpack, pairs
-local tinsert, tremove, tconcat = tinsert, tremove, table.concat
-local atan2, modf, ceil, floor, abs, sqrt, pi, mod = math.atan2, math.modf, math.ceil, math.floor, math.abs, math.sqrt, math.pi, mod
-local bit_band, bit_lshift, bit_rshift = bit.band, bit.lshift, bit.rshift
-local format, sub, upper, string_char, string_byte, split, utf8sub = string.format, string.sub, string.upper, string.char, string.byte, string.split, string.utf8sub
+local tinsert, tremove = tinsert, tremove
+local atan2, modf, ceil, floor, abs, sqrt, mod = math.atan2, math.modf, math.ceil, math.floor, math.abs, math.sqrt, mod
+local format, sub, upper, split, utf8sub = string.format, string.sub, string.upper, string.split, string.utf8sub
 --WoW API / Variables
 local CreateFrame = CreateFrame
 local UnitPosition = UnitPosition
@@ -15,14 +14,34 @@ local GetScreenWidth, GetScreenHeight = GetScreenWidth, GetScreenHeight
 
 --Return short value of a number
 function E:ShortValue(v)
-	if abs(v) >= 1e9 then
-		return format("%.1fG", v / 1e9)
-	elseif abs(v) >= 1e6 then
-		return format("%.1fM", v / 1e6)
-	elseif abs(v) >= 1e3 then
-		return format("%.1fk", v / 1e3)
+	if E.db.general.numberPrefixStyle == "METRIC" then
+		if abs(v) >= 1e9 then
+			return format("%.1fG", v / 1e9)
+		elseif abs(v) >= 1e6 then
+			return format("%.1fM", v / 1e6)
+		elseif abs(v) >= 1e3 then
+			return format("%.1fk", v / 1e3)
+		else
+			return format("%d", v)
+		end
+	elseif E.db.general.numberPrefixStyle == "CHINESE" then
+		if abs(v) >= 1e8 then
+			return format("%.1fY", v / 1e8)
+		elseif abs(v) >= 1e4 then
+			return format("%.1fW", v / 1e4)
+		else
+			return format("%d", v)
+		end
 	else
-		return format("%d", v)
+		if abs(v) >= 1e9 then
+			return format("%.1fB", v / 1e9)
+		elseif abs(v) >= 1e6 then
+			return format("%.1fM", v / 1e6)
+		elseif abs(v) >= 1e3 then
+			return format("%.1fK", v / 1e3)
+		else
+			return format("%d", v)
+		end
 	end
 end
 
@@ -109,21 +128,21 @@ function E:GetScreenQuadrant(frame)
 		return "UNKNOWN", frame:GetName()
 	end
 
-	if (x > (screenWidth / 4) and x < (screenWidth / 4)*3) and y > (screenHeight / 4)*3 then
+	if (x > (screenWidth / 3) and x < (screenWidth / 3)*2) and y > (screenHeight / 3)*2 then
 		point = "TOP"
-	elseif x < (screenWidth / 4) and y > (screenHeight / 4)*3 then
+	elseif x < (screenWidth / 3) and y > (screenHeight / 3)*2 then
 		point = "TOPLEFT"
-	elseif x > (screenWidth / 4)*3 and y > (screenHeight / 4)*3 then
+	elseif x > (screenWidth / 3)*2 and y > (screenHeight / 3)*2 then
 		point = "TOPRIGHT"
-	elseif (x > (screenWidth / 4) and x < (screenWidth / 4)*3) and y < (screenHeight / 4) then
+	elseif (x > (screenWidth / 3) and x < (screenWidth / 3)*2) and y < (screenHeight / 3) then
 		point = "BOTTOM"
-	elseif x < (screenWidth / 4) and y < (screenHeight / 4) then
+	elseif x < (screenWidth / 3) and y < (screenHeight / 3) then
 		point = "BOTTOMLEFT"
-	elseif x > (screenWidth / 4)*3 and y < (screenHeight / 4) then
+	elseif x > (screenWidth / 3)*2 and y < (screenHeight / 3) then
 		point = "BOTTOMRIGHT"
-	elseif x < (screenWidth / 4) and (y > (screenHeight / 4) and y < (screenHeight / 4)*3) then
+	elseif x < (screenWidth / 3) and (y > (screenHeight / 3) and y < (screenHeight / 3)*2) then
 		point = "LEFT"
-	elseif x > (screenWidth / 4)*3 and y < (screenHeight / 4)*3 and y > (screenHeight / 4) then
+	elseif x > (screenWidth / 3)*2 and y < (screenHeight / 3)*2 and y > (screenHeight / 3) then
 		point = "RIGHT"
 	else
 		point = "CENTER"
@@ -250,7 +269,7 @@ function E:Delay(delay, func, ...)
 	end
 	if(waitFrame == nil) then
 		waitFrame = CreateFrame("Frame","WaitFrame", E.UIParent)
-		waitFrame:SetScript("onUpdate",function (self,elapse)
+		waitFrame:SetScript("onUpdate",function (_,elapse)
 			local count = #waitTable
 			local i = 1
 			while(i<=count) do

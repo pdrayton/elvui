@@ -4,10 +4,8 @@ local E, L, V, P, G = unpack(select(2, ...)); --Inport: Engine, Locales, Private
 --Lua functions
 local _G = _G
 local tonumber, type, pairs, select = tonumber, type, pairs, select
-local format, lower, split = string.format, string.lower, string.split
+local lower, split = string.lower, string.split
 --WoW API / Variables
-local InCombatLockdown = InCombatLockdown
-local UIFrameFadeOut, UIFrameFadeIn = UIFrameFadeOut, UIFrameFadeIn
 local EnableAddOn, DisableAllAddOns = EnableAddOn, DisableAllAddOns
 local SetCVar = SetCVar
 local ReloadUI = ReloadUI
@@ -21,37 +19,9 @@ local debugprofilestart, debugprofilestop = debugprofilestart, debugprofilestop
 local UpdateAddOnCPUUsage, GetAddOnCPUUsage = UpdateAddOnCPUUsage, GetAddOnCPUUsage
 local ResetCPUUsage = ResetCPUUsage
 local GetAddOnInfo = GetAddOnInfo
-local ERR_NOT_IN_COMBAT = ERR_NOT_IN_COMBAT
 
 --Global variables that we don't cache, list them here for the mikk's Find Globals script
 -- GLOBALS: FarmMode, Minimap, FarmModeMap, EGrid, MacroEditBox, HelloKittyLeft
-
-
-function FarmMode()
-	if InCombatLockdown() then E:Print(ERR_NOT_IN_COMBAT); return; end
-	if E.private.general.minimap.enable ~= true then return; end
-	if Minimap:IsShown() then
-		UIFrameFadeOut(Minimap, 0.3)
-		UIFrameFadeIn(FarmModeMap, 0.3)
-		Minimap.fadeInfo.finishedFunc = function() Minimap:Hide(); _G.MinimapZoomIn:Click(); _G.MinimapZoomOut:Click(); Minimap:SetAlpha(1) end
-		FarmModeMap.enabled = true
-	else
-		UIFrameFadeOut(FarmModeMap, 0.3)
-		UIFrameFadeIn(Minimap, 0.3)
-		FarmModeMap.fadeInfo.finishedFunc = function() FarmModeMap:Hide(); _G.MinimapZoomIn:Click(); _G.MinimapZoomOut:Click(); Minimap:SetAlpha(1) end
-		FarmModeMap.enabled = false
-	end
-end
-
-function E:FarmMode(msg)
-	if E.private.general.minimap.enable ~= true then return; end
-	if msg and type(tonumber(msg))=="number" and tonumber(msg) <= 500 and tonumber(msg) >= 20 and not InCombatLockdown() then
-		E.db.farmSize = tonumber(msg)
-		FarmModeMap:Size(tonumber(msg))
-	end
-
-	FarmMode()
-end
 
 function E:Grid(msg)
 	if msg and type(tonumber(msg))=="number" and tonumber(msg) <= 256 and tonumber(msg) >= 4 then
@@ -124,15 +94,15 @@ function E:MassGuildKick(msg)
 	if not minRankIndex then minRankIndex = GuildControlGetNumRanks() - 1 end
 
 	for i = 1, GetNumGuildMembers() do
-		local name, _, rankIndex, level, class, _, note, officerNote, connected, _, class = GetGuildRosterInfo(i)
+		local name, _, rankIndex, level, _, _, note, officerNote, connected, _, classFileName = GetGuildRosterInfo(i)
 		local minLevelx = minLevel
 
-		if class == "DEATHKNIGHT" then
+		if classFileName == "DEATHKNIGHT" then
 			minLevelx = minLevelx + 55
 		end
 
 		if not connected then
-			local years, months, days, hours = GetGuildRosterLastOnline(i)
+			local years, months, days = GetGuildRosterLastOnline(i)
 			if days ~= nil and ((years > 0 or months > 0 or days >= minDays) and rankIndex >= minRankIndex) and note ~= nil and officerNote ~= nil and (level <= minLevelx) then
 				GuildUninvite(name)
 			end
@@ -171,23 +141,31 @@ end
 
 local BLIZZARD_ADDONS = {
 	"Blizzard_AchievementUI",
+	"Blizzard_AdventureMap",
 	"Blizzard_ArchaeologyUI",
 	"Blizzard_ArenaUI",
+	"Blizzard_ArtifactUI",
 	"Blizzard_AuctionUI",
 	"Blizzard_AuthChallengeUI",
 	"Blizzard_BarbershopUI",
 	"Blizzard_BattlefieldMinimap",
 	"Blizzard_BindingUI",
 	"Blizzard_BlackMarketUI",
+	"Blizzard_BoostTutorial",
 	"Blizzard_Calendar",
 	"Blizzard_ChallengesUI",
+	"Blizzard_ClassTrial",
 	"Blizzard_ClientSavedVariables",
+	"Blizzard_Collections",
 	"Blizzard_CombatLog",
 	"Blizzard_CombatText",
 	"Blizzard_CompactRaidFrames",
 	"Blizzard_CUFProfiles",
+	"Blizzard_DeathRecap",
 	"Blizzard_DebugTools",
 	"Blizzard_EncounterJournal",
+	"Blizzard_FlightMap",
+	"Blizzard_GarrisonTemplates",
 	"Blizzard_GarrisonUI",
 	"Blizzard_GlyphUI",
 	"Blizzard_GMChatUI",
@@ -196,49 +174,59 @@ local BLIZZARD_ADDONS = {
 	"Blizzard_GuildControlUI",
 	"Blizzard_GuildUI",
 	"Blizzard_InspectUI",
-	"Blizzard_ItemAlterationUI",
 	"Blizzard_ItemSocketingUI",
 	"Blizzard_ItemUpgradeUI",
 	"Blizzard_LookingForGuildUI",
 	"Blizzard_MacroUI",
+	"Blizzard_MapCanvas",
 	"Blizzard_MovePad",
+	"Blizzard_NamePlates",
 	"Blizzard_ObjectiveTracker",
+	"Blizzard_ObliterumUI",
+	"Blizzard_OrderHallUI",
 	"Blizzard_PetBattleUI",
-	"Blizzard_PetJournal",
 	"Blizzard_PVPUI",
 	"Blizzard_QuestChoice",
 	"Blizzard_RaidUI",
+	"Blizzard_SecureTransferUI",
+	"Blizzard_SharedMapDataProviders",
+	"Blizzard_SocialUI",
 	"Blizzard_StoreUI",
 	"Blizzard_TalentUI",
+	"Blizzard_TalkingHeadUI",
 	"Blizzard_TimeManager",
 	"Blizzard_TokenUI",
 	"Blizzard_TradeSkillUI",
 	"Blizzard_TrainerUI",
+	"Blizzard_Tutorial",
+	"Blizzard_TutorialTemplates",
 	"Blizzard_VoidStorageUI",
+	"Blizzard_WowTokenUI",
 }
 function E:EnableBlizzardAddOns()
 	for _, addon in pairs(BLIZZARD_ADDONS) do
 		local reason = select(5, GetAddOnInfo(addon))
 		if reason == "DISABLED" then
 			EnableAddOn(addon)
-			E:Print("The following addon was re-enabled: "..addon)
+			E:Print("The following addon was re-enabled:", addon)
 		end
 	end
 end
 
-function E:ToggleTukuiMode()
-	if(E.global.tukuiMode) then
-		E.global.tukuiMode = nil
-	else
-		E.global.tukuiMode = true
+local statusFrame
+function E:ShowStatusReport()
+	if not statusFrame then
+		statusFrame = CreateFrame("Frame", nil, E.UIParent)
+		statusFrame:Size(400, 600)
+		statusFrame:Point("CENTER", 0, 200)
+		statusFrame:SetFrameStrata("HIGH")
+		statusFrame:CreateBackdrop("Transparent", nil, true)
+		statusFrame.backdrop:SetBackdropColor(0, 0, 0, 0.8)
+		statusFrame:Hide()
 	end
-	ReloadUI()
-end
 
-function E:DisableTukuiMode()
-	E.global.tukuiMode = nil
-	E.global.aprilFools = true
-	ReloadUI()
+	statusFrame:Raise() --Set framelevel above everything else
+	statusFrame:SetShown(not statusFrame:IsShown()) --Toggle displayed state
 end
 
 function E:LoadCommands()
@@ -246,7 +234,15 @@ function E:LoadCommands()
 	self:RegisterChatCommand("ec", "ToggleConfig")
 	self:RegisterChatCommand("elvui", "ToggleConfig")
 	self:RegisterChatCommand('cpuimpact', 'GetCPUImpact')
+
 	self:RegisterChatCommand('cpuusage', 'GetTopCPUFunc')
+	-- args: module, showall, delay, minCalls
+	-- Example1: /cpuusage all
+	-- Example2: /cpuusage Bags true
+	-- Example3: /cpuusage UnitFrames nil 50 25
+	-- Note: showall, delay, and minCalls will default if not set
+	-- arg1 can be "all" this will scan all registered modules!
+
 	self:RegisterChatCommand('bgstats', 'BGStats')
 	self:RegisterChatCommand('hellokitty', 'HelloKittyToggle')
 	self:RegisterChatCommand('hellokittyfix', 'HelloKittyFix')
@@ -255,11 +251,10 @@ function E:LoadCommands()
 	self:RegisterChatCommand('egrid', 'Grid')
 	self:RegisterChatCommand("moveui", "ToggleConfigMode")
 	self:RegisterChatCommand("resetui", "ResetUI")
-	self:RegisterChatCommand('farmmode', 'FarmMode')
 	self:RegisterChatCommand('cleanguild', 'MassGuildKick')
 	self:RegisterChatCommand('enableblizzard', 'EnableBlizzardAddOns')
-	self:RegisterChatCommand('aprilfools', 'DisableTukuiMode')
-	self:RegisterChatCommand('tukuimode', 'ToggleTukuiMode')
+	self:RegisterChatCommand("estatus", "ShowStatusReport")
+	-- self:RegisterChatCommand('aprilfools', '') --Don't need this until next april fools
 	
 	if E.ActionBars then
 		self:RegisterChatCommand('kb', E.ActionBars.ActivateBindMode)

@@ -14,23 +14,27 @@ function E:SetUpAnimGroup(object, type, ...)
 	if type == 'Flash' then
 		object.anim = object:CreateAnimationGroup("Flash")
 		object.anim.fadein = object.anim:CreateAnimation("ALPHA", "FadeIn")
-		object.anim.fadein:SetChange(1)
+		object.anim.fadein:SetFromAlpha(0)
+		object.anim.fadein:SetToAlpha(1)
 		object.anim.fadein:SetOrder(2)
 
 		object.anim.fadeout = object.anim:CreateAnimation("ALPHA", "FadeOut")
-		object.anim.fadeout:SetChange(-1)
+		object.anim.fadeout:SetFromAlpha(1)
+		object.anim.fadeout:SetToAlpha(0)		
 		object.anim.fadeout:SetOrder(1)
 	elseif type == 'FlashLoop' then
 		object.anim = object:CreateAnimationGroup("Flash")
 		object.anim.fadein = object.anim:CreateAnimation("ALPHA", "FadeIn")
-		object.anim.fadein:SetChange(1)
+		object.anim.fadein:SetFromAlpha(0)
+		object.anim.fadein:SetToAlpha(1)
 		object.anim.fadein:SetOrder(2)
 
 		object.anim.fadeout = object.anim:CreateAnimation("ALPHA", "FadeOut")
-		object.anim.fadeout:SetChange(-1)
+		object.anim.fadeout:SetFromAlpha(1)
+		object.anim.fadeout:SetToAlpha(0)		
 		object.anim.fadeout:SetOrder(1)
 
-		object.anim:SetScript("OnFinished", function(self, requested)
+		object.anim:SetScript("OnFinished", function(_, requested)
 			if(not requested) then
 				object.anim:Play()
 			end
@@ -229,7 +233,6 @@ function E:UIFrameFade(frame, fadeInfo)
 	if ( not fadeInfo.mode ) then
 		fadeInfo.mode = "IN";
 	end
-	local alpha;
 	if ( fadeInfo.mode == "IN" ) then
 		if ( not fadeInfo.startAlpha ) then
 			fadeInfo.startAlpha = 0;
@@ -237,7 +240,6 @@ function E:UIFrameFade(frame, fadeInfo)
 		if ( not fadeInfo.endAlpha ) then
 			fadeInfo.endAlpha = 1.0;
 		end
-		alpha = 0;
 	elseif ( fadeInfo.mode == "OUT" ) then
 		if ( not fadeInfo.startAlpha ) then
 			fadeInfo.startAlpha = 1.0;
@@ -245,7 +247,6 @@ function E:UIFrameFade(frame, fadeInfo)
 		if ( not fadeInfo.endAlpha ) then
 			fadeInfo.endAlpha = 0;
 		end
-		alpha = 1.0;
 	end
 	frame:SetAlpha(fadeInfo.startAlpha);
 
